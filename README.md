@@ -1,12 +1,12 @@
-# Bigly Custom Funnnel Template
+# Bigly Custom Funnnel Template :bear:
 
-## Welcome to the Bigly Custom Funnel documentation!
+### Welcome to the Bigly Custom Funnel documentation!
 
 # System Requirements
 - Node.js 12.22.0 or later
 - MacOS, Windows (including WSL), and Linux are supported
 
-# Automatic Setup
+# Automatic Setup :robot:
 
 ```
 npm install
@@ -14,18 +14,18 @@ npm install
 yarn install
 ```
 
-### DEV SERVER
+### DEV SERVER :desktop_computer:
 Run `npm run dev` or `yarn dev` to start the development server on http://localhost:8080
 
-### FRONT END SERVER
+### FRONT END SERVER :iphone:
 Visit http://localhost:5500 to view your application
 
 > Edit public/index.html and see the updated result in your browser
 
-# Manual Setup
+# Manual Setup 	:mechanic:
 Install `npm init -y`, cors express dotenv-dom firebase firebase-admin and stripe in your project:
 
-Go into your desired work folder and create a new folder or use mkdir [file 
+Go into your desired work folder and create a new folder or use mkdir [file]
 ```
 npm install
 # or
