@@ -1,4 +1,4 @@
-# Custom Funnnel
+# Bigly Custom Funnnel Template
 
 ## Welcome to the Bigly Custom Funnel documentation!
 
