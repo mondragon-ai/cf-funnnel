@@ -1,15 +1,5 @@
 import "https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js";
-console.log("PUBLIC - SHOPIFY.JS")
-
-/**
- * Build & Instantiate Shopify Client
- * @param { domain, storefront }  
- * 
- */
-var client = ShopifyBuy.buildClient({
-    domain: 'shophodgetwins.myshopify.com',
-    storefrontAccessToken: '6acb860cfdb0d87b1f7ece385e7727f4'
-});
+console.log("PUBLIC - FIREBASE.JS");
 
 // Config obj for FB
 const firebaseConfig = {

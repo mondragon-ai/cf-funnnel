@@ -1,67 +1,33 @@
 console.log("PUBLIC - INDEX.JS")
 const stripe = Stripe('pk_test_51LCmGyE1N4ioGCdR6UcKcjiZDb8jfZaaDWcIGhdaUCyhcIDBxG9uYzLGFtziZjZ6R6VnSSVEMW8dUZ8IfnwvSSBa0044BHRyL5');
-// import { db } from './lib/firebase.js'
-
 
 // Hide the second form on load
 $("#EVENT_TWO").hide();
 
-/**
- * Submit email to FB & Shopify
- */
-$("#EVENT_ONE").submit(async function (ev) { 
-    ev.preventDefault();
-    const e = $("input").val()
-    const data =  { email: e }
-
-    console.log("DATA: ", JSON.stringify(data))
-    $("#EVENT_TWO").show();
-    $("#EVENT_ONE").hide();
-});
-
-
-$("#EVENT_TWO").submit(async function (ev) { 
-    ev.preventDefault();
-
-    var address = {}
-    var cc = {}
-    $("form#EVENT_TWO input[type=text]").each(function(){
-        var input = $(this); 
-        if ([input.attr('name')] == 'cc' || [input.attr('name')] == 'exp_month' || [input.attr('name')] == 'exp_year' || [input.attr('name')] == 'cvc' ) {
-            cc = {
-                ...cc,
-                [input.attr('name')]: input.val()
-            }
-        } else {
-            address = {
-                ...address,
-                [input.attr('name')]: input.val()
-            }
-        }
-    });
-
-    // addShippingInfo(address,cc);
-    $("#EVENT_TWO").show();
-    $("#EVENT_ONE").hide();
-});
-
+// Set El
 let elements;
 
+// Initalize fetch
 initialize();
 checkStatus();
 
-document
-  .querySelector("#payment-form")
-  .addEventListener("submit", handleSubmit);
+// Get our secret 
+document.querySelector("#payment-form").addEventListener("submit", handleSubmit);
 
-// Fetches a payment intent and captures the client secret
+/**
+ * Fetches a payment intent and captures the client secret
+ */
 async function initialize() {
   const response = await fetch("http://localhost:8080/createScene");
-  const { clientSecret } = await response.json();
+  const { clientSecret, fbuid } = await response.json();
 
+  localStorage.setItem("fbuid", fbuid);
+  localStorage.setItem("cSecret", clientSecret);
+  
   const appearance = {
     theme: 'stripe',
   };
+  
   elements = stripe.elements({ appearance, clientSecret });
 
   const paymentElement = elements.create("payment");
@@ -70,31 +36,65 @@ async function initialize() {
 
 async function handleSubmit(e) {
   e.preventDefault();
-  setLoading(true);
+  // setLoading(true);
+  $("#EVENT_TWO").hide();
+
+  var address = {}
+  var name = ""
+  $("form#payment-form input[type=text]").each(function(){
+      var input = $(this); 
+      if ([input.attr('name')] == 'firstName' ) {
+        name = input.val()
+      } else {
+          address = {
+              ...address,
+              [input.attr('name')]: input.val()
+          }
+      }
+  });
+
+  const shippingAddress = {
+    address: address,
+    name: name
+  }
+
+  const d = {shippingAddress: shippingAddress, fbUID: localStorage.getItem("fbuid")}
+
+  console.log("EVENT TWO - SHIPPING ADDED SUCCESS: ", d );
+
+  const response = await fetch('http://localhost:8080/handleSubmit', {
+    method: "POST",
+    body: JSON.stringify(d),
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+
+  const data = await response.json();
+
+  console.log("EVENT TWO - SHIPPING ADDED SUCCESS: ", data);
 
   const { error } = await stripe.confirmPayment({
     elements,
     confirmParams: {
-      // Make sure to change this to your payment completion page
+      // GO to upsell page
       return_url: "http://localhost:5500/upsell.html",
     },
   });
 
-  // This point will only be reached if there is an immediate error when
-  // confirming the payment. Otherwise, your customer will be redirected to
-  // your `return_url`. For some payment methods like iDEAL, your customer will
-  // be redirected to an intermediate site first to authorize the payment, then
-  // redirected to the `return_url`.
   if (error.type === "card_error" || error.type === "validation_error") {
     showMessage(error.message);
   } else {
     showMessage("An unexpected error occurred.");
   }
 
-  setLoading(false);
+  // setLoading(false);
 }
 
-// Fetches the payment intent status after payment submission
+/**
+ * Fetches the payment intent status after payment submission
+ * @returns 
+ */
 async function checkStatus() {
   const clientSecret = new URLSearchParams(window.location.search).get(
     "payment_intent_client_secret"
@@ -122,8 +122,10 @@ async function checkStatus() {
   }
 }
 
-// ------- UI helpers -------
-
+/**
+ * Generate UI Messages
+ * @param {*} messageText 
+ */
 function showMessage(messageText) {
   const messageContainer = document.querySelector("#payment-message");
 
@@ -136,7 +138,10 @@ function showMessage(messageText) {
   }, 4000);
 }
 
-// Show a spinner on payment submission
+/**
+ * Show a spinner on payment submission
+ * @param {*} isLoading 
+ */
 function setLoading(isLoading) {
   if (isLoading) {
     // Disable the button and show a spinner
@@ -149,4 +154,58 @@ function setLoading(isLoading) {
     document.querySelector("#button-text").classList.remove("hidden");
   }
 }
+
+/**
+ * Submit email to FB & Shopify
+ */
+ $("#EVENT_ONE").submit(async function (ev) { 
+  ev.preventDefault();
+  const e = $("input").val();
+  const f = localStorage.getItem("fbuid")
+  const d =  { email: String(e), fbUID: String(f)};
+
+  console.log("DATA: ", d);
+
+  const response = await fetch('http://localhost:8080/addEmail', {
+    method: "POST",
+    body: JSON.stringify(d),
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+
+  const data = await response.json();
+
+  console.log("EVENT ONE SUCCESS: ", data);
+
+  $("#EVENT_TWO").show();
+  $("#EVENT_ONE").hide();
+});
+
+// localStorage.clear()
+
+// $("#EVENT_TWO").submit(async function (ev) { 
+//   ev.preventDefault();
+
+//   var address = {}
+//   var cc = {}
+//   $("form#EVENT_TWO input[type=text]").each(function(){
+//       var input = $(this); 
+//       if ([input.attr('name')] == 'cc' || [input.attr('name')] == 'exp_month' || [input.attr('name')] == 'exp_year' || [input.attr('name')] == 'cvc' ) {
+//           cc = {
+//               ...cc,
+//               [input.attr('name')]: input.val()
+//           }
+//       } else {
+//           address = {
+//               ...address,
+//               [input.attr('name')]: input.val()
+//           }
+//       }
+//   });
+
+//   // addShippingInfo(address,cc);
+//   $("#EVENT_TWO").show();
+//   $("#EVENT_ONE").hide();
+// });
 

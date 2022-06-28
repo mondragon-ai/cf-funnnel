@@ -1,9 +1,8 @@
 require('dotenv').config()
-const Stripe = require('stripe')
+const Stripe = require('stripe');
 const {app} = require("./api/funnel");
 const { initializeApp } = require("firebase/app");
-const { addDoc, collection, getFirestore} = require("firebase/firestore"); 
-// console.log("Error adding document: ");
+const { getFirestore} = require("firebase/firestore"); 
 
 const firebaseConfig = {
   apiKey: "AIzaSyBVbUajosWuWo6RDhcwarsoFb5vQULdm50",
@@ -25,5 +24,5 @@ export const db = getFirestore(fbApp);
 export const stripe = Stripe(process.env.STRIPE_SECRET);
 
 // Create a port for listenign
-const port = 8080
-app.listen(port, () => console.log(`You are listening to http://localhost:${port}`))
+const port = 8080;
+app.listen(port, () => console.log(`You are listening to http://localhost:${port}`));
