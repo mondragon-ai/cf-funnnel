@@ -14,5 +14,7 @@ const firebaseConfig = {
 
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
+
+// Create DB
 export const db = firebase.firestore();
 console.log("FB & SHOPIFY INITALIZED");

@@ -7,7 +7,7 @@ $("#EVENT_TWO").hide();
 // Set El
 let elements;
 
-// Initalize fetch
+// Initalize & Create scene
 initialize();
 checkStatus();
 
@@ -18,77 +18,25 @@ document.querySelector("#payment-form").addEventListener("submit", handleSubmit)
  * Fetches a payment intent and captures the client secret
  */
 async function initialize() {
+  // GET: BE to init/create scene for using FB/Shopify/Stripe
   const response = await fetch("http://localhost:8080/createScene");
   const { clientSecret, fbuid } = await response.json();
 
+  // Add FB_UUID & Stripe C_secret to Local Storage
   localStorage.setItem("fbuid", fbuid);
   localStorage.setItem("cSecret", clientSecret);
   
+  // Styling when needed
   const appearance = {
     theme: 'stripe',
   };
   
+  // Create our Form el
   elements = stripe.elements({ appearance, clientSecret });
 
+  // Use el and inject in our fomr (Stripe)
   const paymentElement = elements.create("payment");
   paymentElement.mount("#payment-element");
-}
-
-async function handleSubmit(e) {
-  e.preventDefault();
-  // setLoading(true);
-  $("#EVENT_TWO").hide();
-
-  var address = {}
-  var name = ""
-  $("form#payment-form input[type=text]").each(function(){
-      var input = $(this); 
-      if ([input.attr('name')] == 'firstName' ) {
-        name = input.val()
-      } else {
-          address = {
-              ...address,
-              [input.attr('name')]: input.val()
-          }
-      }
-  });
-
-  const shippingAddress = {
-    address: address,
-    name: name
-  }
-
-  const d = {shippingAddress: shippingAddress, fbUID: localStorage.getItem("fbuid")}
-
-  console.log("EVENT TWO - SHIPPING ADDED SUCCESS: ", d );
-
-  const response = await fetch('http://localhost:8080/handleSubmit', {
-    method: "POST",
-    body: JSON.stringify(d),
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  });
-
-  const data = await response.json();
-
-  console.log("EVENT TWO - SHIPPING ADDED SUCCESS: ", data);
-
-  const { error } = await stripe.confirmPayment({
-    elements,
-    confirmParams: {
-      // GO to upsell page
-      return_url: "http://localhost:5500/upsell.html",
-    },
-  });
-
-  if (error.type === "card_error" || error.type === "validation_error") {
-    showMessage(error.message);
-  } else {
-    showMessage("An unexpected error occurred.");
-  }
-
-  // setLoading(false);
 }
 
 /**
@@ -139,34 +87,17 @@ function showMessage(messageText) {
 }
 
 /**
- * Show a spinner on payment submission
- * @param {*} isLoading 
+ *  Submit email to Stripe, FB & Shopify
+ *  @param {*} event 
  */
-function setLoading(isLoading) {
-  if (isLoading) {
-    // Disable the button and show a spinner
-    document.querySelector("#submit").disabled = true;
-    document.querySelector("#spinner").classList.remove("hidden");
-    document.querySelector("#button-text").classList.add("hidden");
-  } else {
-    document.querySelector("#submit").disabled = false;
-    document.querySelector("#spinner").classList.add("hidden");
-    document.querySelector("#button-text").classList.remove("hidden");
-  }
-}
-
-/**
- * Submit email to FB & Shopify
- */
- $("#EVENT_ONE").submit(async function (ev) { 
+$("#EVENT_ONE").submit(async function (ev) { 
   ev.preventDefault();
   const e = $("input").val();
   const f = localStorage.getItem("fbuid")
   const d =  { email: String(e), fbUID: String(f)};
 
-  console.log("DATA: ", d);
-
-  const response = await fetch('http://localhost:8080/addEmail', {
+  // Post email to BE - Stripe/FB/Shopify
+  await fetch('http://localhost:8080/addEmail', {
     method: "POST",
     body: JSON.stringify(d),
     headers: {
@@ -174,38 +105,74 @@ function setLoading(isLoading) {
     },
   });
 
-  const data = await response.json();
-
-  console.log("EVENT ONE SUCCESS: ", data);
-
   $("#EVENT_TWO").show();
   $("#EVENT_ONE").hide();
 });
 
 // localStorage.clear()
 
-// $("#EVENT_TWO").submit(async function (ev) { 
-//   ev.preventDefault();
+/**
+ *  Get the address & Submit to Stripe/FB 
+ *  * Create PI object to collect CC info for Stripe
+ *  ! SHOPIFY IS NOT MODIFIED -- NOT UNTIL '/CHEKCOUT'
+ *  @param {*} event 
+ */
+async function handleSubmit(e) {
+  e.preventDefault();
+  $("#EVENT_TWO").hide();
 
-//   var address = {}
-//   var cc = {}
-//   $("form#EVENT_TWO input[type=text]").each(function(){
-//       var input = $(this); 
-//       if ([input.attr('name')] == 'cc' || [input.attr('name')] == 'exp_month' || [input.attr('name')] == 'exp_year' || [input.attr('name')] == 'cvc' ) {
-//           cc = {
-//               ...cc,
-//               [input.attr('name')]: input.val()
-//           }
-//       } else {
-//           address = {
-//               ...address,
-//               [input.attr('name')]: input.val()
-//           }
-//       }
-//   });
+  var address = {}
+  var name = ""
 
-//   // addShippingInfo(address,cc);
-//   $("#EVENT_TWO").show();
-//   $("#EVENT_ONE").hide();
-// });
+  // Get Form & Inputs for Address Obj
+  $("form#payment-form input[type=text]").each(function(){
+      var input = $(this); 
+      if ([input.attr('name')] == 'firstName' ) {
+        name = input.val()
+      } else {
+          address = {
+              ...address,
+              [input.attr('name')]: input.val()
+          }
+      }
+  });
+  
+  // Form Shipping object for stripe
+  const shippingAddress = {
+    address: address,
+    name: name
+  }
+
+  // Create Data Object to be POSTed
+  const d = {shippingAddress: shippingAddress, fbUID: localStorage.getItem("fbuid")}
+
+  // Post Data to BE for Stripe & FB
+  const response = await fetch('http://localhost:8080/handleSubmit', {
+    method: "POST",
+    body: JSON.stringify(d),
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+
+  // ? Keep or naw? Data if needed 
+  const data = await response.json();
+
+  // Handle Strie Client Tunnel 
+  const { error } = await stripe.confirmPayment({
+    elements,
+    confirmParams: {
+      // GO to upsell page on Confirmation
+      return_url: "http://localhost:5500/upsell.html",
+    },
+  });
+
+  // handle error, if any before going to return_url
+  if (error.type === "card_error" || error.type === "validation_error") {
+    showMessage(error.message);
+  } else {
+    showMessage("An unexpected error occurred.");
+  }
+}
+
 
