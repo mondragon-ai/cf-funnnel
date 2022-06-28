@@ -15,10 +15,10 @@ app.use( cors({origin:true}));
  * @param { domain, storefront }  
  * 
  */
- const shopifyClient = new Shopify.Clients.Storefront(
+const shopifyClient = new Shopify.Clients.Storefront(
     'shophodgetwins.myshopify.com',
     '6acb860cfdb0d87b1f7ece385e7727f4'
- );
+);
 
 /**
  * Test API Route
@@ -116,6 +116,7 @@ app.post('/addEmail', async (req: Request, res: Response) => {
     const docRef = doc(db, "users", `${fbUID}`);
     const docSnap = await getDoc(docRef);
 
+    // Make sure the doc exists.
     if (docSnap.exists()) {
         const userData  = docSnap.data();
 
@@ -146,24 +147,22 @@ app.post('/addEmail', async (req: Request, res: Response) => {
         await updateDoc(docRef, {
             email: `${email}`
         });
-        
         res.status(200).json("SUCCESS"); 
-
     } else { 
-
         res.status(400).json("FB REF DOC NOT FOUND"); 
-
-    }
-        
+    }  
 }); 
 
+/**
+ * Submit Shipping to FB. CC Info captured client side
+ */
 app.post('/handleSubmit',  async (req: Request, res: Response) => {
     const { shippingAddress, fbUID} = req.body;
 
     // Fetch the user/{user} doc from FB for Stripe/Shopify Cart/IDs
     const docRef = doc(db, "users", `${fbUID}`);
 
-    // TODO: Add Shipping to FB
+    // Add Shipping to FB
     await updateDoc(docRef, {
         shipping: {
             address: {
@@ -177,14 +176,19 @@ app.post('/handleSubmit',  async (req: Request, res: Response) => {
         },
         isReadyToCharge: true
     })
-
     res.status(200).json("Succesfully added Shiping to Firebase")
-
 });
 
+/**
+ * Handle Checkout for Shopify between Stripe
+ */
 app.get('/checkout', async (req: Request, res: Response) => {
+    const { fbUID } = req.body;
 
-    res.status(200).json("Sold ");
+    
+
+
+    res.status(200).json("Sold");
 })
 
 
