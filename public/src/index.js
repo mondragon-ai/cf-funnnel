@@ -109,7 +109,7 @@ $("#EVENT_ONE").submit(async function (ev) {
   $("#EVENT_ONE").hide();
 });
 
-// localStorage.clear()
+// localStorage.clear()   
 
 /**
  *  Get the address & Submit to Stripe/FB 
@@ -119,7 +119,6 @@ $("#EVENT_ONE").submit(async function (ev) {
  */
 async function handleSubmit(e) {
   e.preventDefault();
-  $("#EVENT_TWO").hide();
 
   var address = {}
   var name = ""
@@ -146,33 +145,43 @@ async function handleSubmit(e) {
   // Create Data Object to be POSTed
   const d = {shippingAddress: shippingAddress, fbUID: localStorage.getItem("fbuid")}
 
+  var token;
+
+  var paymentElement = elements.getElement('payment');
+
+  const res = await stripe.createToken(paymentElement);  
+  const data = await res.json();
+  console.log(data);
+
+
   // Post Data to BE for Stripe & FB
-  const response = await fetch('http://localhost:8080/handleSubmit', {
-    method: "POST",
-    body: JSON.stringify(d),
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  });
+  // const response = await fetch('http://localhost:8080/handleSubmit', {
+  //   method: "POST",
+  //   body: JSON.stringify(d),
+  //   headers: {
+  //     'Content-Type': 'application/json',
+  //   },
+  // });
 
-  // ? Keep or naw? Data if needed 
-  const data = await response.json();
+  // // ? Keep or naw? Data if needed 
+  // const data = await response.json();
 
-  // Handle Strie Client Tunnel 
-  const { error } = await stripe.confirmPayment({
-    elements,
-    confirmParams: {
-      // GO to upsell page on Confirmation
-      return_url: "http://localhost:5500/upsell.html",
-    },
-  });
+  // // Handle Strie Client Tunnel 
+  // const {error} = await stripe.confirmSetup({
+  //   //`Elements` instance that was used to create the Payment Element
+  //   elements,
+  //   confirmParams: {
+  //     return_url: 'http://127.0.0.1:5500/public/upsell.html',
+  //   }
+  // });
 
-  // handle error, if any before going to return_url
-  if (error.type === "card_error" || error.type === "validation_error") {
-    showMessage(error.message);
-  } else {
-    showMessage("An unexpected error occurred.");
-  }
+  // if (error) {
+  //   const messageContainer = document.querySelector('#error-message');
+  //   messageContainer.textContent = error.message;
+  // } else { // avtivate return URL 
+  // }
 }
+
+// Pass the failed PaymentIntent to your client from your serve
 
 
