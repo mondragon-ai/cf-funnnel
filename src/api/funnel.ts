@@ -1,5 +1,5 @@
 import { json, Request, Response } from "express";
-import fetch, { Response } from 'node-fetch';
+import fetch from 'node-fetch';
 const express = require('express');
 const cors = require('cors');
 export const app = express();
@@ -10,12 +10,16 @@ import Shopify from "@shopify/shopify-api";
 const SHOP_URL = 'shophodgetwins'; 
 const SHOPIFY_ADMIN_ACCESS_TOKEN = process.env.SHOPIFY_ADMIN_ACCESS_TOKEN;
 const URL = `https://${SHOP_URL}.myshopify.com/admin/api/2022-04/`;
+
+// Admin Headers 
 const HEADERS_ADMIN = { 
     'Content-Type': 'application/json',
-    'X-Shopify-Access-Token': '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'
+    'X-Shopify-Access-Token': SHOPIFY_ADMIN_ACCESS_TOKEN 
 }
 
+// Add middleware to handle json
 app.use( express.json());
+// Make cross origin
 app.use( cors({origin:true}));
 
 /**
@@ -41,11 +45,12 @@ app.get('/test', async (req: Request, res: Response) => {
  */
 app.get('/createScene', async (req: Request, res: Response) => { 
 
+    // Create Stripe Customer
     const customer = await stripe.customers.create({
         description: "CUSTOM CLICK FUNNEL",
     });
 
-    // Create a PaymentIntent with the order amount and currency
+    // Create a SetUp Intent to get client side secrete key
     const paymentIntent = await stripe.setupIntents.create({
         customer: customer.id,
         payment_method_types: ['card']
@@ -69,29 +74,27 @@ app.get('/createScene', async (req: Request, res: Response) => {
 app.post('/addEmail', async (req: Request, res: Response) => {
     const { email, fbUID } = req.body;
 
-    console.log("EMAIL: ", email);
-    console.log("fbUID: ", fbUID);
-
     // Fetch the user/{user} doc frmo FB for Stripe/Shopify Cart/IDs
     const docRef = doc(db, "users", `${fbUID}`);
     const docSnap = await getDoc(docRef);
+    const userData  = docSnap.data();
 
     // Make sure the doc exists.
     if (docSnap.exists()) {
-        const userData  = docSnap.data();
 
-        // Update Stripe Cart
-        const customer = await stripe.customers.update(
+        // Update Stripe customer
+        await stripe.customers.update(
             `${userData.STRIPE_UUID}`, 
             {email: `${email}`}
         );
 
-        // Add a new document with a generated id.
+        // Add a email with a generated FB_UUID
         await updateDoc(docRef, {
             email: `${email}`
         });
         res.status(200).json("SUCCESS"); 
-    } else { 
+
+    } else {
         res.status(400).json("FB REF DOC NOT FOUND"); 
     }  
 }); 
@@ -117,7 +120,7 @@ app.post('/handleSubmit',  async (req: Request, res: Response) => {
                     line1: `${shippingAddress.address.line1}`,
                     city:  `${shippingAddress.address.city}`,
                     state:  `${shippingAddress.address.province}`,
-                    country:  `${shippingAddress.address.country}`,
+                    country:  "US",
                     zip:  `${shippingAddress.address.zip}`
                 },
                 name:  `${shippingAddress.name}`
@@ -135,8 +138,8 @@ app.post('/handleSubmit',  async (req: Request, res: Response) => {
 });
 
 /**
- * Handle Checkout for Shopify between Stripe
- *  @param { FBUID } req
+ *  Create Shopify Order, Charge Stripe, COomplete Order on Success & send to conf page
+ *  @param { FB_UUID } req
  */
 app.post('/checkout', async (req: Request, res: Response) => { 
 
@@ -147,125 +150,204 @@ app.post('/checkout', async (req: Request, res: Response) => {
     const snapShot = await getDoc(docRef);
     const data = snapShot.data()
 
-    // Get Customer Paymenth Method ID
-    // const paymentMethods = await stripe.paymentMethods.list({
-    //     customer: data.STRIPE_UUID,
-    //     type: 'card',
-    // });
-
     if (snapShot.exists()) {
 
+        // Get Customer Paymenth Method ID
+        const paymentMethods = await stripe.paymentMethods.list({
+            customer: data.STRIPE_UUID,
+            type: 'card',
+        });
+
+        // Check the status of the Shopify Create Customer Call
         async function checkStatus(r) {
-            if (r.ok) { // res.status >= 200 && res.status < 300
-                return r;
+
+            // If 200 >= x < 300, & return customer ID
+            if (r.ok) { 
+
+                const data = await r.json();
+                const d = {
+                    customers: [{
+                        id: data.customer.id
+                    }] 
+                }
+                console.log('173 - SHOPIFY: ', d)
+                return  d
+
             } else if ( r.status == 422 ) {
                 
-                    const response = await fetch(URL + `/customers/search.json?query=email:"${data.email}"&fields=id,email`, {
-                        method: 'get',
-                        headers: HEADERS_ADMIN
-                    })
-                    .then(res => res.json())
-                    .then(jsonData => {
-            
-                        console.log("174: SUCCESS. The data is: ", jsonData)
-                        return jsonData
-            
-                    })
-                    .catch(e => console.log(e));
-                    return response
-                
+                // If email is with an existing user search the email 
+                const response = await fetch(URL + `customers/search.json?query=email:"${data.email}"&fields=id,email`, {
+                    method: 'get',
+                    headers: HEADERS_ADMIN
+                })
+                .then(res => res.json())
+                .then(jsonData =>  jsonData )
+                .catch(e => console.log(e)); 
+
+                console.log('187 - SHOPIFY: ', response)
+
+                // Return the shopify UUID
+                return response
 
             } else {
                 res.status(400).json({msg: "SHOPIFY: Unknonwn. See logs for more info."})
             }
         }
 
-        const customerBody = {
+        // Customer Data
+        const customer_data = {
             customer: {
                 first_name: `${data.shipping.name}`,
                 last_name:"",
                 email: `${data.email}`,
                 phone:"",
-                addresses:[{
-                    address1: `${data.shipping.address.line1}`,
-                    city: `${data.shipping.address.city}`,
-                    province: `${data.shipping.address.province}`,
-                    phone: "",
-                    zip: `${data.shipping.address.zip}`,
-                    last_name: "",
-                    first_name:  `${data.shipping.name}`,
-                    country: `${data.shipping.address.line1}`,
-                }]
             }
         }
 
-        // const body = {
-            
-        //     customer: {
-        //         email:`HenryBottle@fork.com`,
-        //         first_name:`${data.shipping.name}`,
-        //         last_name:""
-        //     }
-        // }
-
+        // Create New Customer OR search for existing on 422 status 
         const shopifyUuid = await fetch(URL + `customers.json`, {
             method: 'post',
-            body:    JSON.stringify(customerBody),
+            body:    JSON.stringify(customer_data),
             headers: HEADERS_ADMIN
         })
         .then(res => checkStatus(res))
         .then(json => json);
 
+         // Address Data
+        const address_data = {
+            address :{
+                address1:`${data.shipping.address.line1}`,
+                company: "",
+                address2: "",//`${data.shipping.address.line1}`,
+                city: `${data.shipping.address.city}`,
+                province: `${data.shipping.address.state}`,
+                phone: "",
+                zip: `${data.shipping.address.zip}`,
+                last_name: "",
+                first_name:  `${data.shipping.name}`,
+                country: "US", //`${data.shipping.address.line1}`,
+                country_code: "US"
+            }
+        }
+
+        // Add Address to existing customer (SHOPIFY)
+        await fetch(URL + `customers/${shopifyUuid.customers[0].id}/addresses.json`, {
+            method: 'post',
+            body:    JSON.stringify(address_data),
+            headers: HEADERS_ADMIN
+        })
+        .then(r => { return r.json() })
+        .then(json => json);
+
+        // ADD SHOPIFY UUID TO DATABASE
+        await updateDoc(docRef, {
+            SHOPIFY_UUID: shopifyUuid.customers[0].id
+        })
+
+        // Order Data (SHOPIFY)
         const order_data = {
             order:{
-                line_items:[
-                    {
-                        variant_id: 41175550886060, // ! make dynamic
-                        quantity: 1
-                    }
-                ],
+                line_items: cartToOrder(data),
                 customer:{
-                    id: shopifyUuid.customers[0].id // ! ADD user frmo above 
+                    id: shopifyUuid.customers[0].id 
                 }
             }
         }
-        console.log("251: SUCCESS. The data is: ", shopifyUuid.customers[0].id);
 
-        // const draftOrder = await fetch(URL + `orders.json`, {
-        //     method: 'post',
-        //     body: JSON.stringify(order_data),
-        //     headers: HEADERS_ADMIN
-        // })
-        // .then(r =>  r.json())
-        // .then(json => json)
+        // Create Order & Get Price
+        const shopify_order = await fetch(URL + `orders.json`, {
+            method: 'post',
+            body: JSON.stringify(order_data),
+            headers: HEADERS_ADMIN
+        })
+        .then(r =>  r.json())
+        .then(json => json)
 
-        // console.log("252: SUCCESS. The data is: ", draftOrder);
-        
-        res.status(200).json({msg: "SUCCESS: Stripe Paid", data: shopifyUuid});
+        try {
+            const paymentIntent = await stripe.paymentIntents.create({
+                amount: String(shopify_order.order.current_subtotal_price).replace(".", ""), // ! MAKE DYNAMIC FROM shopify_order
+                currency: 'usd',
+                customer: data.STRIPE_UUID,
+                payment_method: paymentMethods.data[0].id,
+                off_session: true,
+                confirm: true,
+                receipt_email: data.email, 
+
+            });
+
+            res.status(200).json({msg: "SUCCESS: Stripe Paid", data: paymentIntent});
     
-        // try {
-        //     const paymentIntent = await stripe.paymentIntents.create({
-        //         amount: 1099,
-        //         currency: 'usd',
-        //         customer: data.STRIPE_UUID,
-        //         payment_method: paymentMethods.data[0].id,
-        //         off_session: true,
-        //         confirm: true,
-        //     });
-        //     res.status(200).json({msg: "SUCCESS: Stripe Paid", data: paymentIntent});
-    
-        // } catch (err) {
-        //     // Error code will be authentication_required if authentication is needed
-        //     console.log('Error code is: ', err.code);
-        //     const paymentIntentRetrieved = await stripe.paymentIntents.retrieve(err.raw.payment_intent.id);
-        //     console.log('PI retrieved: ', paymentIntentRetrieved.id);
-        //     res.status(200).json(`STRIPE: Payment Error - ${err.code}`);
-        // }
+        } catch (err) {
+            // Error code will be authentication_required if authentication is needed
+            console.log('291 - Error code is: ', err.code);
+            const paymentIntentRetrieved = await stripe.paymentIntents.retrieve(err.raw.payment_intent.id);
+            console.log('293 - PI retrieved: ', paymentIntentRetrieved.id);
+            res.status(400).json(`STRIPE: Payment Error - ${err.code}`);
+        }
 
+        res.status(200).json({msg: "SUCCESS: Stripe Paid", data: shopify_order});
+    
     } else {
-
+        res.status(400).json({msg: `FIREBASE: Database error.`});
     }
 })
+
+app.post('/addProduct', async (req: Request, res: Response) => {
+
+    const { FB_UUID, Product } = req. body;
+
+    // Decostruct Product = { P_UID, QTY } 
+    const { variant_id, quantity } = Product;
+
+    // Fetch FB doc for FB_UUID
+    const docRef = doc(db, 'users', FB_UUID);
+    const snapShot = await getDoc(docRef)
+    const data = snapShot.data();
+    const { line_items } = data
+
+    try {
+
+        // Update line_items: [{}] 
+        await updateDoc(docRef, {
+            line_items: [
+                ...line_items,
+                {
+                    variant_id: variant_id,
+                    quantity: quantity
+                }
+            ]
+        })
+        res.status(200).json({m: "SUCCESS: Product Added to FB cart in refDoc. 💯", FB_UUID: FB_UUID, Product: Product})
+
+    } catch (e) {
+        res.status(400).json({m: "FIREBASE ERROR: Problem adding cart. 💯", e: e})
+
+    }
+
+});
+
+
+const cartToOrder =  (FB_DOC) => {
+
+    const { cart } = FB_DOC
+    const ln = cart.length
+    var line_items = []
+
+    if (ln == 0 ) { 
+        return line_items
+     } else {
+        for (var i = 0; i < ln - 1; i++) {
+            line_items = [
+                {
+                    variant_id: cart[i].variant_id,
+                    quantity: cart[i].quantity
+                }
+            ];
+        }
+        return line_items
+    }
+
+}
 
 
 

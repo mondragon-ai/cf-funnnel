@@ -23,6 +23,7 @@ async function initialize() {
   const { clientSecret, fbuid } = await response.json();
 
   // Add FB_UUID & Stripe C_secret to Local Storage
+  localStorage.setItem("fbuid", "");
   localStorage.setItem("fbuid", fbuid);
   localStorage.setItem("cSecret", clientSecret);
   
@@ -145,41 +146,33 @@ async function handleSubmit(e) {
   // Create Data Object to be POSTed
   const d = {shippingAddress: shippingAddress, fbUID: localStorage.getItem("fbuid")}
 
-  var token;
-
-  var paymentElement = elements.getElement('payment');
-
-  const res = await stripe.createToken(paymentElement);  
-  const data = await res.json();
-  console.log(data);
-
 
   // Post Data to BE for Stripe & FB
-  // const response = await fetch('http://localhost:8080/handleSubmit', {
-  //   method: "POST",
-  //   body: JSON.stringify(d),
-  //   headers: {
-  //     'Content-Type': 'application/json',
-  //   },
-  // });
+  const response = await fetch('http://localhost:8080/handleSubmit', {
+    method: "POST",
+    body: JSON.stringify(d),
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
 
-  // // ? Keep or naw? Data if needed 
-  // const data = await response.json();
+  // ? Keep or naw? Data if needed 
+  const data = await response.json();
 
-  // // Handle Strie Client Tunnel 
-  // const {error} = await stripe.confirmSetup({
-  //   //`Elements` instance that was used to create the Payment Element
-  //   elements,
-  //   confirmParams: {
-  //     return_url: 'http://127.0.0.1:5500/public/upsell.html',
-  //   }
-  // });
+  // Handle Strie Client Tunnel 
+  const {error} = await stripe.confirmSetup({
+    //`Elements` instance that was used to create the Payment Element
+    elements,
+    confirmParams: {
+      return_url: 'http://127.0.0.1:5500/public/upsell.html',
+    }
+  });
 
-  // if (error) {
-  //   const messageContainer = document.querySelector('#error-message');
-  //   messageContainer.textContent = error.message;
-  // } else { // avtivate return URL 
-  // }
+  if (error) {
+    const messageContainer = document.querySelector('#error-message');
+    messageContainer.textContent = error.message;
+  } else { // avtivate return URL 
+  }
 }
 
 // Pass the failed PaymentIntent to your client from your serve
