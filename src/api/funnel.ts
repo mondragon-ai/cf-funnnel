@@ -173,7 +173,7 @@ app.post('/checkout', async (req: Request, res: Response) => {
                 console.log('173 - SHOPIFY: ', d)
                 return  d
 
-            } else if ( r.status == 422 ) {
+            } else if ( r.status == 422 ) { 
                 
                 // If email is with an existing user search the email 
                 const response = await fetch(URL + `customers/search.json?query=email:"${data.email}"&fields=id,email`, {
@@ -296,6 +296,8 @@ app.post('/addProduct', async (req: Request, res: Response) => {
 
     const { FB_UUID, Product } = req. body;
 
+    console.log(FB_UUID, Product)
+
     // Decostruct Product = { P_UID, QTY } 
     const { variant_id, quantity } = Product;
 
@@ -307,10 +309,21 @@ app.post('/addProduct', async (req: Request, res: Response) => {
 
     try {
 
-        // Update line_items: [{}] 
+        if (!line_items) {
+            await updateDoc(docRef, {
+                line_items: [
+                    {
+                        variant_id: variant_id,
+                        quantity: quantity
+                    }
+                ]
+            })
+        }
+
+        // Update line_items: [{}]  
         await updateDoc(docRef, {
             line_items: [
-                ...line_items,
+                ...line_items, 
                 {
                     variant_id: variant_id,
                     quantity: quantity
@@ -321,7 +334,7 @@ app.post('/addProduct', async (req: Request, res: Response) => {
 
     } catch (e) {
         res.status(400).json({m: "FIREBASE ERROR: Problem adding cart. 💯", e: e})
-
+ 
     }
 
 });
@@ -329,22 +342,22 @@ app.post('/addProduct', async (req: Request, res: Response) => {
 
 const cartToOrder =  (FB_DOC) => {
 
-    const { cart } = FB_DOC
-    const ln = cart.length
-    var line_items = []
+    const { line_items } = FB_DOC
+    const ln = line_items.length
+    var cart = []
 
     if (ln == 0 ) { 
         return line_items
      } else {
         for (var i = 0; i < ln - 1; i++) {
-            line_items = [
+            cart = [
                 {
-                    variant_id: cart[i].variant_id,
-                    quantity: cart[i].quantity
+                    variant_id: line_items[i].variant_id,
+                    quantity: line_items[i].quantity
                 }
             ];
         }
-        return line_items
+        return cart
     }
 
 }
