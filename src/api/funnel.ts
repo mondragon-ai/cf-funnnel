@@ -72,7 +72,7 @@ app.get('/createScene', async (req: Request, res: Response) => {
  *  @param { email, FB_UID } req.body
  */
 app.post('/addEmail', async (req: Request, res: Response) => {
-    const { email, fbUID } = req.body;
+    const { firstName, email, fbUID } = req.body;
 
     // Fetch the user/{user} doc frmo FB for Stripe/Shopify Cart/IDs
     const docRef = doc(db, "users", `${fbUID}`);
@@ -82,14 +82,15 @@ app.post('/addEmail', async (req: Request, res: Response) => {
     // Make sure the doc exists.
     if (docSnap.exists()) {
 
-        // Update Stripe customer
-        await stripe.customers.update(
-            `${userData.STRIPE_UUID}`, 
-            {email: `${email}`}
-        );
+        // // Update Stripe customer
+        // await stripe.customers.update(
+        //     `${userData.STRIPE_UUID}`, 
+        //     {email: `${email}`}
+        // );
 
         // Add a email with a generated FB_UUID
         await updateDoc(docRef, {
+            firstName: firstName,
             email: `${email}`
         });
         res.status(200).json("SUCCESS"); 

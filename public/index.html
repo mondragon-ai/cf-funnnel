@@ -43,6 +43,9 @@
         </div>
         <div class="form-block">
           <form id="EVENT_ONE">
+            <label for="firstName">
+                <input type="text" name="firstName" id="fName"  placeholder="Luke Skywalker">
+            </label>
             <label for="email">
                 <input type="email" name="email" id="email" placeholder="john@gobigly.com">
             </label>
@@ -61,24 +64,106 @@
           </form>
           <div  id="EVENT_TWO">
               <form id="payment-form">
-                  <label for="firstName">
-                      <input type="text" name="firstName" id="fName">
+                <div class="products">
+                  <ul>
+                    <li class="product">
+                      <div id="CHECK_BOX">
+                        <label for="LANDING_PRODUCT">
+                          <input type="radio" name="LANDING_PRODUCT" id="LANDING_PRODUCT" value="BRONZE" >
+                        </label>
+                      </div>
+                      <div id="product_ticket_text">
+                        <div>
+                          <h5>Bronze Box (9 Entries)</h5>
+                          <p>$18 value in products</p>
+                        </div>
+                        <div>
+                          <h5>$9.00</h5>
+                        </div>
+                      </div>
+                    </li>
+                    <li class="product">
+                      <div id="CHECK_BOX">
+                        <label for="LANDING_PRODUCT">
+                          <input type="radio" name="LANDING_PRODUCT" id="LANDING_PRODUCT" value="BRONZE" >
+                        </label>
+                      </div>
+                      <div id="product_ticket_text">
+                        <div>
+                          <h5>Silver Box (30 Entries)</h5>
+                          <p>$60 value in products</p>
+                        </div>
+                        <div>
+                          <h5>$35.00</h5>
+                        </div>
+                      </div>
+                    </li>
+                    <li class="product" id="FOCUS">
+                      <div id="CHECK_BOX">
+                        <label for="LANDING_PRODUCT">
+                          <input type="radio" name="LANDING_PRODUCT" id="LANDING_PRODUCT" value="BRONZE" checked>
+                        </label>
+                      </div>
+                      <div id="product_ticket_text">
+                        <div>
+                          <h5>Gold Box (50 Entries)</h5>
+                          <p>$125 value in products</p>
+                        </div>
+                        <div>
+                          <h5>$50.00</h5>
+                        </div>
+                      </div>
+                    </li>
+                    <li class="product">
+                      <div id="CHECK_BOX">
+                        <label for="LANDING_PRODUCT">
+                          <input type="radio" name="LANDING_PRODUCT" id="LANDING_PRODUCT" value="BRONZE" >
+                        </label>
+                      </div>
+                      <div id="product_ticket_text">
+                        <div>
+                          <h5>Platinum Box (99 Entries)</h5>
+                          <p>$200 value in products</p>
+                        </div>
+                        <div>
+                          <h5>$99.00</h5>
+                        </div>
+                      </div>
+                    </li>
+                  </ul>
+                </div>
+                <label for="line1">
+                    <input type="text" name="line1" id="line1"  placeholder="123 Main Street">
+                </label>
+                <label for="city">
+                    <input type="text" name="city" id="city"  placeholder="Denver">
+                </label>
+                <label for="province">
+                    <input type="text" name="province" id="province"  placeholder="CO">
+                </label>
+                <label for="zip">
+                    <input type="text" name="zip" id="zip"  placeholder="84673">
+                </label>
+                <div id="payment-element">
+
+                </div>
+
+                
+                <div class="bump-text">
+                  <label for="bump">
+                      <input type="checkbox" name="bump" id="bump" placeholder="">
                   </label>
-                  <label for="line1">
-                      <input type="text" name="line1" id="line1">
-                  </label>
-                  <label for="city">
-                      <input type="text" name="city" id="city">
-                  </label>
-                  <label for="province">
-                      <input type="text" name="province" id="province">
-                  </label>
-                  <label for="zip">
-                      <input type="text" name="zip" id="zip">
-                  </label>
-                  <div id="payment-element"></div>
-                  <button id="submit">Submit</button>
-                  <div id="error-message"></div>
+                  <div>
+                    <img src="https://images.clickfunnels.com/old-public-templates/listhacking-sales/images/arrow-flash-small.gif" alt="">
+                    <h2 style="padding: 0 3%;">Yes! Rush & Insure my Order for $3.99</h2>
+                    <p style="padding: 0 3%;">
+                      This will give your order priority in the fulfillment center (There is a huge demand for these) as well as shipping insurance that will cover 100% of your shipment in case of loss or damaged packages, no questions asked!
+                    </p>
+                  </div>
+                </div>
+                <button id="submit">Submit</button>
+                <div id="error-message"></div>
+
               </form>
           </div>
         </div>

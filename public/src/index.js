@@ -19,13 +19,14 @@ document.querySelector("#payment-form").addEventListener("submit", handleSubmit)
  */
 async function initialize() {
   // GET: BE to init/create scene for using FB/Shopify/Stripe
-  const response = await fetch("http://localhost:8080/createScene");
-  const { clientSecret, fbuid } = await response.json();
+  // const response = await fetch("http://localhost:8080/createScene");
+  // const { clientSecret, fbuid } = await response.json();
 
+  const clientSecret = "seti_1LJMFUE1N4ioGCdRMh4KaX4r_secret_M1P3vVp9r0fRIiSC2X0AlDuR5AwNUh7"
   // Add FB_UUID & Stripe C_secret to Local Storage
   localStorage.setItem("fbuid", "");
-  localStorage.setItem("fbuid", fbuid);
-  localStorage.setItem("cSecret", clientSecret);
+  // localStorage.setItem("fbuid", fbuid);
+  // localStorage.setItem("cSecret", clientSecret);
   
   // Styling when needed
   const appearance = {
@@ -33,7 +34,7 @@ async function initialize() {
   };
   
   // Create our Form el
-  elements = stripe.elements({ appearance, clientSecret });
+  elements = stripe.elements({ appearance,  clientSecret});
 
   // Use el and inject in our fomr (Stripe)
   const paymentElement = elements.create("payment");
@@ -94,17 +95,20 @@ function showMessage(messageText) {
 $("#EVENT_ONE").submit(async function (ev) { 
   ev.preventDefault();
   const e = $("input").val();
+  const n = $("form#EVENT_ONE input[type=email]").val();
   const f = localStorage.getItem("fbuid")
-  const d =  { email: String(e), fbUID: String(f)};
+  const d =  { email: String(e), name: n, fbUID: String(f)};
+
+  console.log(e,n,f)
 
   // Post email to BE - Stripe/FB/Shopify
-  await fetch('http://localhost:8080/addEmail', {
-    method: "POST",
-    body: JSON.stringify(d),
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  });
+  // await fetch('http://localhost:8080/addEmail', {
+  //   method: "POST",
+  //   body: JSON.stringify(d),
+  //   headers: {
+  //     'Content-Type': 'application/json',
+  //   },
+  // });
 
   $("#EVENT_TWO").show();
   $("#EVENT_ONE").hide();
@@ -148,16 +152,16 @@ async function handleSubmit(e) {
 
 
   // Post Data to BE for Stripe & FB
-  const response = await fetch('http://localhost:8080/handleSubmit', {
-    method: "POST",
-    body: JSON.stringify(d),
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  });
+  // const response = await fetch('http://localhost:8080/handleSubmit', {
+  //   method: "POST",
+  //   body: JSON.stringify(d),
+  //   headers: {
+  //     'Content-Type': 'application/json',
+  //   },
+  // });
 
   // ? Keep or naw? Data if needed 
-  const data = await response.json();
+  // const data = await response.json();
 
   // Handle Strie Client Tunnel 
   const {error} = await stripe.confirmSetup({
