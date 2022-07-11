@@ -21,10 +21,10 @@ localStorage.clear();
  */
 async function initialize() {
   // GET: BE to init/create scene for using FB/Shopify/Stripe
-  const response = await fetch("http://localhost:8080/createScene");
-  const { clientSecret, fbuid } = await response.json();
+  // const response = await fetch("http://localhost:8080/createScene");
+  // const { clientSecret, fbuid } = await response.json();
 
-  // const clientSecret = "seti_1LJMFUE1N4ioGCdRMh4KaX4r_secret_M1P3vVp9r0fRIiSC2X0AlDuR5AwNUh7"
+  const clientSecret = "seti_1LJMFUE1N4ioGCdRMh4KaX4r_secret_M1P3vVp9r0fRIiSC2X0AlDuR5AwNUh7"
   // Add FB_UUID & Stripe C_secret to Local Storage
   // localStorage.setItem("fbuid", "");
   localStorage.removeItem("fbuid")
@@ -106,19 +106,107 @@ $("#EVENT_ONE").submit(async function (ev) {
   console.log(e,n,f)
 
   // Post email to BE - Stripe/FB/Shopify
-  await fetch('http://localhost:8080/addEmail', {
-    method: "POST",
-    body: JSON.stringify(d),
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  });
+  // await fetch('http://localhost:8080/addEmail', {
+  //   method: "POST",
+  //   body: JSON.stringify(d),
+  //   headers: {
+  //     'Content-Type': 'application/json',
+  //   },
+  // });
 
   $("#EVENT_TWO").show();
   $("#EVENT_ONE").hide();
 });
 
 // localStorage.clear()   
+
+let product = {}
+
+$("#BRONZE").click(function(e) {    
+  e.preventDefault();
+
+  // TOGGLE TICKETS
+  jQuery("input:radio[value='BRONZE']").prop('checked', true);
+  jQuery("input:radio[value='SILVER']").prop('checked', false);
+  jQuery("input:radio[value='GOLD']").prop('checked', false);
+  jQuery("input:radio[value='PLATINUM']").prop('checked', false);
+
+  // Get Value of Radio
+  var radioValue = jQuery("input[name='LANDING_PRODUCT']:checked").val();
+
+  product = {
+    variant_id: 41513662578860,
+    price: 900
+  }
+  console.log('VALUE SELECTED: ', radioValue, product);
+  
+});
+
+
+$("#SILVER").click(function(e) {    
+  e.preventDefault();
+
+  // TOGGLE TICKETS
+  jQuery("input:radio[value='BRONZE']").prop('checked', false);
+  jQuery("input:radio[value='SILVER']").prop('checked', true);
+  jQuery("input:radio[value='GOLD']").prop('checked', false);
+  jQuery("input:radio[value='PLATINUM']").prop('checked', false);
+
+  // Get Value of Radio
+  var radioValue = jQuery("input[name='LANDING_PRODUCT']:checked").val();
+  
+  product = {
+    variant_id: 41513667985580,
+    price: 3000
+  }
+  console.log('VALUE SELECTED: ', radioValue, product);
+
+});
+
+
+$("#GOLD").click(function(e) {    
+  e.preventDefault();
+
+  // TOGGLE TICKETS
+  jQuery("input:radio[value='BRONZE']").prop('checked', false);
+  jQuery("input:radio[value='SILVER']").prop('checked', false);
+  jQuery("input:radio[value='GOLD']").prop('checked', true);
+  jQuery("input:radio[value='PLATINUM']").prop('checked', false);
+
+  // Get Value of Radio
+  var radioValue = jQuery("input[name='LANDING_PRODUCT']:checked").val();
+
+  product = {
+    variant_id: 41513672474796,
+    price: 5000
+  }
+
+  console.log('VALUE SELECTED: ', radioValue, product);
+
+});
+
+
+$("#PLATINUM").click(function(e) {    
+  e.preventDefault();
+
+  // TOGGLE TICKETS
+  jQuery("input:radio[value='BRONZE']").prop('checked', false);
+  jQuery("input:radio[value='SILVER']").prop('checked', false);
+  jQuery("input:radio[value='GOLD']").prop('checked', false);
+  jQuery("input:radio[value='PLATINUM']").prop('checked', true);
+
+  // Get Value of Radio
+  var radioValue = jQuery("input[name='LANDING_PRODUCT']:checked").val();
+
+  product = {
+    variant_id: 41513860300972,
+    price: 9900
+  };
+
+  console.log('VALUE SELECTED: ', radioValue, product);
+
+});
+
 
 /**
  *  Get the address & Submit to Stripe/FB 
@@ -152,7 +240,7 @@ async function handleSubmit(e) {
   }
 
   // Create Data Object to be POSTed
-  const d = {shippingAddress: shippingAddress, fbUID: localStorage.getItem("fbuid")}
+  const d = {shippingAddress: shippingAddress, fbUID: localStorage.getItem("fbuid"), product: product}
 
 
   // Post Data to BE for Stripe & FB
