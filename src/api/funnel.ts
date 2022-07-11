@@ -1,5 +1,5 @@
-import { json, Request, Response } from "express";
-import fetch, { Request, Response } from 'node-fetch';
+import e, { json, Request, Response } from "express";
+import fetch from 'node-fetch';
 const express = require('express');
 const cors = require('cors');
 export const app = express();
@@ -9,7 +9,7 @@ import { collection, addDoc, getDoc, doc, updateDoc, getDocs } from "firebase/fi
 import Shopify from "@shopify/shopify-api";
 const SHOP_URL = 'shophodgetwins'; 
 const SHOPIFY_ADMIN_ACCESS_TOKEN = process.env.SHOPIFY_ADMIN_ACCESS_TOKEN;
-const URL = `https://${SHOP_URL}.myshopify.com/admin/api/2022-04/`;
+const URL = `https://${SHOP_URL}.myshopify.com/admin/api/2022-07/`;
 
 // Admin Headers 
 const HEADERS_ADMIN = { 
@@ -120,7 +120,6 @@ app.post('/handleSubmit',  async (req: Request, res: Response) => {
 
     if (snapShot.exists()) {
 
-
         // Check the status of the Shopify Create Customer Call
         async function checkStatus(r) {
 
@@ -161,7 +160,7 @@ app.post('/handleSubmit',  async (req: Request, res: Response) => {
         // Customer Data
         const customer_data = {
             customer:{
-                first_name: data.firstName,
+                first_name: data.name,
                 last_name:"",
                 email: data.email,
                 phone:"",
@@ -174,7 +173,7 @@ app.post('/handleSubmit',  async (req: Request, res: Response) => {
                         phone: "",
                         zip: shippingAddress.address.zip,
                         last_name:"",
-                        first_name: data.firstName,
+                        first_name: data.name,
                         country:"US",
                         country_name:"United States", 
                         default: true
@@ -214,10 +213,14 @@ app.post('/handleSubmit',  async (req: Request, res: Response) => {
         );
         console.log('213 - STRIPE: ', customer);
 
-
-
         // Add Shipping & Shopify UUID to FB
         await updateDoc(docRef, {
+            line_items:[
+                {
+                    variant_id: 41513672474796,
+                    quantity: 1
+                }
+            ],
             SHOPIFY_UUID: shopifyCustomer.customers[0].id,
             shipping: {
                 address: {
@@ -230,13 +233,7 @@ app.post('/handleSubmit',  async (req: Request, res: Response) => {
                 name:  `${shippingAddress.name}`
             },
             isReadyToCharge: true,
-            email: `${data.email}`,
-            line_items: [
-                {
-                    variant_id: product.variant_id,
-                    quantity: 1
-                }
-            ]
+            email: data.email
         });
 
         initialCharge(fbUID, product);
@@ -249,22 +246,30 @@ app.post('/handleSubmit',  async (req: Request, res: Response) => {
     }
 });
 
-const initialCharge = async (fbUID, product) => {
-    await fetch("http://127.0.0.1:8080/charge", {
-            method: 'post',
-            body:    JSON.stringify({
-                FB_UUID: fbUID,
-                product: product
-            }),
-            headers: HEADERS_ADMIN
-        })
-        .then(r => r.json())
-        .then(json => json);
-}
+const initialCharge =  (fbUID, product) => {
+
+    setTimeout(async()=> {
+
+        await fetch("http://127.0.0.1:8080/charge", {
+                method: 'post',
+                body:    JSON.stringify({
+                    FB_UUID: fbUID,
+                    product: product
+                }),
+                headers: HEADERS_ADMIN
+            })
+            .then(r => r.json())
+            .then(json => json);
+    }, 1500)
+
+};
 
 app.post('/charge', async (req: Request, res: Response) => {
 
     const { product, FB_UUID} = req.body;
+
+    console.log('274 - /CHARGE: ', product);
+
 
     // Fetch the user/{user} doc from FB for Stripe/Shopify Cart/IDs
     const docRef = doc(db, "users", `${FB_UUID}`);
@@ -277,7 +282,7 @@ app.post('/charge', async (req: Request, res: Response) => {
         type: 'card',
     });
 
-    console.log('276 - STRIPE: ', paymentMethods);
+    console.log('288 - STRIPE: ', paymentMethods);
 
 
     try {
@@ -292,6 +297,7 @@ app.post('/charge', async (req: Request, res: Response) => {
 
         });
 
+        console.log('303 - STRIPE: ', paymentIntent);
 
         // Add Shipping & Shopify UUID to FB
         await updateDoc(docRef, {
@@ -308,6 +314,7 @@ app.post('/charge', async (req: Request, res: Response) => {
         .then(r => r.json())
         .then(json => json);
 
+        res.status(200).json({m: "SUCCESS! ", d: paymentIntent})
 
     } catch (err) {
         // Error code will be authentication_required if authentication is needed
@@ -327,6 +334,7 @@ app.post('/charge', async (req: Request, res: Response) => {
 app.post('/sendOrder', async (req: Request, res: Response) => { 
 
     const { FB_UUID } = req.body;
+    console.log('338 - /SEND_ORDER: ', FB_UUID);
 
     // Fetch the user/{user} doc from FB for Stripe/Shopify Cart/IDs
     const docRef = doc(db, "users", `${FB_UUID}`);
@@ -334,11 +342,13 @@ app.post('/sendOrder', async (req: Request, res: Response) => {
     const data = snapShot.data()
 
     if (snapShot.exists()) {
+        
+        console.log('340 - /SEND_ORDER: ', data);
 
         // Order Data (SHOPIFY)
         const draft_order_data = {
             draft_order:{
-                line_items: cartToOrder(data),
+                line_items: await cartToOrder(data),
                 customer:{
                     id: data.SHOPIFY_UUID
                 },
@@ -359,23 +369,52 @@ app.post('/sendOrder', async (req: Request, res: Response) => {
             headers: HEADERS_ADMIN
         })
         .then(r =>  r.json())
-        .then(json => json)
+        .then(json => json);
 
-        // Complete Order
-        await fetch(`https://{{STORE_NAME}}.myshopify.com/admin/api/2022-07/draft_orders/${shopify_order.id}/complete.json`, {
-            method: 'post',
-            body: JSON.stringify(draft_order_data),
-            headers: HEADERS_ADMIN
-        })
-        .then(r =>  r.json())
-        .then(json => json)
+        console.log('375 - Shopify: ', shopify_order);
 
-        res.status(200).json({msg: "SUCCESS: Stripe Paid", data: shopify_order});
+        sendOrder(shopify_order.draft_order.id);
     
     } else {
         res.status(400).json({msg: `FIREBASE: Database error.`});
     }
-})
+});
+
+const sendOrder =  (draftID) => {
+
+    console.log('386 - Shopify DRANF_ORDER: ', draftID);
+
+    // Check the status of the Shopify Create Customer Call
+    async function checkStatus(r) {
+
+        // If 200 >= x < 300, & return customer ID
+        if (r.ok) { 
+            console.log('392 - Shopify SUCCESS: ', r);
+
+            return  r.json()
+
+        } else { 
+
+            console.log('398 - Shopify: ', r);
+            
+            return r.json();
+
+        } 
+    };
+
+    setTimeout(async()=> {
+
+        // Complete Order
+        const shopify_order = await fetch(URL + `draft_orders/${draftID}/complete.json`, {
+            method: 'put',
+            headers: HEADERS_ADMIN
+        })
+        .then(r =>  checkStatus(r))
+        .then(json => json);
+
+    }, 1500)
+
+};
 
 app.post('/addProduct', async (req: Request, res: Response) => {
 
@@ -387,7 +426,7 @@ app.post('/addProduct', async (req: Request, res: Response) => {
     const { variant_id, quantity } = Product;
 
     // Fetch FB doc for FB_UUID
-    const docRef = doc(db, 'users', FB_UUID);
+    const docRef = doc(db, 'users', FB_UUID); 
     const snapShot = await getDoc(docRef)
     const data = snapShot.data();
     const { line_items } = data
@@ -427,15 +466,20 @@ app.post('/addProduct', async (req: Request, res: Response) => {
 
 const cartToOrder =  (FB_DOC) => {
 
+    console.log('470 - Shopify: ', FB_DOC);
+
     const { line_items } = FB_DOC
     const ln = line_items.length
     var cart = []
 
     if (ln == 0 ) { 
-        return line_items
+        console.log('477 - Shopify: ', cart);
+        return cart
      } else {
-        for (var i = 0; i < ln - 1; i++) {
+        console.log('480 - Shopify: ', cart);
+        for (var i = 0; i < ln; i++) {
             cart = [
+                ...cart,
                 {
                     variant_id: line_items[i].variant_id,
                     quantity: line_items[i].quantity
