@@ -106,12 +106,12 @@ app.post('/addEmail', async (req: Request, res: Response) => {
  *  @param { ShippingAddress, FBUID, Product } req
  */
 app.post('/handleSubmit',  async (req: Request, res: Response) => {
-    const { shippingAddress, fbUID} = req.body;
+    const { shippingAddress, fbUID, product } = req.body;
 
-    const product = {
-        variant_id: 41513672474796,
-        price: 3400
-    }
+    // const product = {
+    //     variant_id: 41513672474796,
+    //     price: 3400
+    // }
 
     // Fetch the user/{user} doc from FB for Stripe/Shopify Cart/IDs
     const docRef = doc(db, "users", `${fbUID}`);
@@ -217,7 +217,7 @@ app.post('/handleSubmit',  async (req: Request, res: Response) => {
         await updateDoc(docRef, {
             line_items:[
                 {
-                    variant_id: 41513672474796,
+                    variant_id: product.variant_id,
                     quantity: 1
                 }
             ],
