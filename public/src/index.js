@@ -21,14 +21,14 @@ localStorage.clear();
  */
 async function initialize() {
   // GET: BE to init/create scene for using FB/Shopify/Stripe
-  // const response = await fetch("http://localhost:8080/createScene");
-  // const { clientSecret, fbuid } = await response.json();
+  const response = await fetch("http://localhost:8080/createScene");
+  const { clientSecret, FB_UUID } = await response.json();
 
-  const clientSecret = "seti_1LJMFUE1N4ioGCdRMh4KaX4r_secret_M1P3vVp9r0fRIiSC2X0AlDuR5AwNUh7"
+  // const clientSecret = "seti_1LJMFUE1N4ioGCdRMh4KaX4r_secret_M1P3vVp9r0fRIiSC2X0AlDuR5AwNUh7"
   // Add FB_UUID & Stripe C_secret to Local Storage
-  // localStorage.setItem("fbuid", "");
-  localStorage.removeItem("fbuid")
-  localStorage.setItem("fbuid", fbuid);
+  localStorage.setItem("FB_UUID", "");
+  localStorage.removeItem("FB_UUID")
+  localStorage.setItem("FB_UUID", FB_UUID);
   localStorage.setItem("cSecret", clientSecret);
   console.log("PUBLIC - INDEX.JS", localStorage);
   
@@ -43,6 +43,7 @@ async function initialize() {
   // Use el and inject in our fomr (Stripe)
   const paymentElement = elements.create("payment");
   paymentElement.mount("#payment-element");
+  console.log("PUBLIC - INDEX.JS", localStorage);
 }
 
 /**
@@ -100,19 +101,19 @@ $("#EVENT_ONE").submit(async function (ev) {
   ev.preventDefault();
   const e = $("input").val();
   const n = $("form#EVENT_ONE input[type=email]").val();
-  const f = localStorage.getItem("fbuid")
-  const d =  { email: String(e), fullName: n, fbUID: String(f)};
+  const f = localStorage.getItem("FB_UUID")
+  const d =  { email: String(e), fullName: n, FB_UUID: String(f)};
 
   console.log(e,n,f)
 
   // Post email to BE - Stripe/FB/Shopify
-  // await fetch('http://localhost:8080/addEmail', {
-  //   method: "POST",
-  //   body: JSON.stringify(d),
-  //   headers: {
-  //     'Content-Type': 'application/json',
-  //   },
-  // });
+  await fetch('http://localhost:8080/addEmail', {
+    method: "POST",
+    body: JSON.stringify(d),
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
 
   $("#EVENT_TWO").show();
   $("#EVENT_ONE").hide();
@@ -120,7 +121,8 @@ $("#EVENT_ONE").submit(async function (ev) {
 
 // localStorage.clear()   
 
-let product = {}
+let product = {};
+let bump = true;
 
 $("#BRONZE").click(function(e) {    
   e.preventDefault();
@@ -207,6 +209,17 @@ $("#PLATINUM").click(function(e) {
 
 });
 
+$("#bump").change(function(e) {    
+  e.preventDefault();
+
+  // Get Value of Radio
+  var radioValue = $("input[name='bump']").is(":checked");
+
+  bump = radioValue;
+
+  console.log('BUMP BTN: ', radioValue);
+
+});
 
 /**
  *  Get the address & Submit to Stripe/FB 
@@ -240,7 +253,7 @@ async function handleSubmit(e) {
   }
 
   // Create Data Object to be POSTed
-  const d = {shippingAddress: shippingAddress, fbUID: localStorage.getItem("fbuid"), product: product}
+  const d = {shippingAddress: shippingAddress, FB_UUID: localStorage.getItem("FB_UUID"), product: product, bump: bump}
 
 
   // Post Data to BE for Stripe & FB
@@ -269,7 +282,9 @@ async function handleSubmit(e) {
     messageContainer.textContent = error.message;
   } else { // avtivate return URL 
   }
-}
+};
+
+console.log("started")
 
 // Pass the failed PaymentIntent to your client from your serve
 
