@@ -49,9 +49,10 @@ $("#ADD_VIP").click(async function (e) {
     .then(r => r.json())
     .then(json => {
         // $("#ADD_VIP").text("YES! CLAIM MY FREE WRISTBANDS AND SIGN ME UP");
-        window.location.href="http://127.0.0.1:5500/public/congrats.html"
+        // window.location.href="http://127.0.0.1:5500/public/congrats.html"
         return json
     });
+    window.location.href="http://127.0.0.1:5500/public/congrats.html";
 
 });
 
@@ -61,7 +62,7 @@ $("#DOWN_SELL_ONE").click( async (e) => {
     e.preventDefault();
     const f = localStorage.getItem("FB_UUID");
 
-    
+
   
     $("#DOWN_SELL_ONE").text("LOADING....");
     $("#DOWN_SELL_FOUR").text("LOADING....");
@@ -87,14 +88,15 @@ $("#DOWN_SELL_ONE").click( async (e) => {
     .then(r => r.json())
     .then(json => {
         // $("#ADD_VIP").text("YES! CLAIM MY FREE WRISTBANDS AND SIGN ME UP");
-        window.location.href="http://127.0.0.1:5500/public/congrats.html"
+        // window.location.href="http://127.0.0.1:5500/public/congrats.html"
         return json
     });
+    window.location.href="http://127.0.0.1:5500/public/congrats.html";
   
-  });
+});
   
   
-  $("#DOWN_SELL_TWO").click( async (e) => {  
+$("#DOWN_SELL_TWO").click( async (e) => {  
     e.preventDefault();
     const f = localStorage.getItem("FB_UUID");
   
@@ -122,14 +124,15 @@ $("#DOWN_SELL_ONE").click( async (e) => {
     .then(r => r.json())
     .then(json => {
         // $("#ADD_VIP").text("YES! CLAIM MY FREE WRISTBANDS AND SIGN ME UP");
-        window.location.href="http://127.0.0.1:5500/public/congrats.html"
+        // window.location.href="http://127.0.0.1:5500/public/congrats.html"
         return json
     });
+    window.location.href="http://127.0.0.1:5500/public/congrats.html"
   
   });
   
   
-  $("#DOWN_SELL_THREE").click( async (e) => {  
+$("#DOWN_SELL_THREE").click( async (e) => {  
     e.preventDefault();
     const f = localStorage.getItem("FB_UUID");
   
@@ -156,11 +159,12 @@ $("#DOWN_SELL_ONE").click( async (e) => {
     .then(r => r.json())
     .then(json => {
         // $("#ADD_VIP").text("YES! CLAIM MY FREE WRISTBANDS AND SIGN ME UP");
-        window.location.href="http://127.0.0.1:5500/public/congrats.html"
+        // window.location.href="http://127.0.0.1:5500/public/congrats.html"
         return json
     });
+    window.location.href="http://127.0.0.1:5500/public/congrats.html"
   
-  });
+});
   
   
   $("#DOWN_SELL_FOUR").click( async (e) => {  
@@ -191,9 +195,10 @@ $("#DOWN_SELL_ONE").click( async (e) => {
     .then(r => r.json())
     .then(json => {
         // $("#ADD_VIP").text("YES! CLAIM MY FREE WRISTBANDS AND SIGN ME UP");
-        window.location.href="http://127.0.0.1:5500/public/congrats.html"
+        // window.location.href="http://127.0.0.1:5500/public/congrats.html"
         return json
     });
+    window.location.href="http://127.0.0.1:5500/public/congrats.html";
   
   });
   
