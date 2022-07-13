@@ -207,7 +207,9 @@ app.post('/handleSubmit',  async (req: Request, res: Response) => {
             line_items:[
                 {
                     variant_id: product.variant_id,
-                    quantity: 1
+                    quantity: 1,
+                    price: product.price,
+                    title: product.title
                 }
             ],
             SHOPIFY_UUID: shopifyCustomer.customers[0].id,
@@ -297,9 +299,15 @@ app.post('/charge', async (req: Request, res: Response) => {
         await updateDoc(docRef, {
             SHOPIFY_CHECKOUT_ID: paymentMethods.data[0].id
         });
+
+        if (data.ORDER_STARTED) {
+            // Send headers success
+            res.status(200).json({m: "SUCCESS: Sripe succesffuly charged customer.", d: paymentIntent, started: data.ORDER_STARTED});
+
+        } else {
+            sendOrder(FB_UUID);
+        }
         
-        // Send headers success
-        res.status(200).json({m: "SUCCESS: Sripe succesffuly customer charged.", d: paymentIntent, started: data.ORDER_STARTED});
 
     } catch (err) {
         // Error code will be authentication_required if authentication is needed
@@ -316,25 +324,26 @@ app.post('/charge', async (req: Request, res: Response) => {
  *  Create Draft Order in 1000*60*5 minutes
  *  @param FB_UUID
  */
-//  const sendOrder =  (FB_UUID: string) => {
+ const sendOrder =  (FB_UUID: string) => {
 
-//     setTimeout( async ()=> {
+    console.log('327 - Shopify DRAFT_ORDER starts in 1000*60*1 minutes: ', FB_UUID);
+    setTimeout(()=> {
 
-//         console.log('325 - Shopify DRAFT_ORDER starts in 1000*60*5 minutes: ', FB_UUID);
-//         const f = FB_UUID;
+        console.log('330 - Shopify DRAFT_ORDER called: ', FB_UUID);
+        const f = FB_UUID;
     
-//         // initiate Order 
-//         await fetch("http://127.0.0.1:8080/sendOrder", {
-//             method: 'post',
-//             body:    JSON.stringify({FB_UUID: f}),
-//             headers: HEADERS_ADMIN
-//         })
-//         .then(r => r.json())
-//         .then(json => json);
+        // initiate Order 
+        fetch("http://127.0.0.1:8080/sendOrder", {
+            method: 'post',
+            body:    JSON.stringify({FB_UUID: f}),
+            headers: HEADERS_ADMIN
+        })
+        .then(r => r.json())
+        .then(json => json);
 
-//     }, 1000*60*5);
+    }, 1000*60*1);
 
-// };
+};
 
 /**
  *  Create Shopify Order, Charge Stripe, COomplete Order on Success & send to conf page
@@ -376,17 +385,20 @@ app.post('/sendOrder', async (req: Request, res: Response) => {
             }
         };
 
-        // Create Order & Get Price
-        const shopify_order = await fetch(URL + `draft_orders.json`, {
-            method: 'post',
-            body: JSON.stringify(draft_order_data),
-            headers: HEADERS_ADMIN
-        })
-        .then(r =>  r.json())
-        .then(json => json);
+        setTimeout( async () => {
+            // Create Order & Get Price
+            const shopify_order = await fetch(URL + `draft_orders.json`, {
+                method: 'post',
+                body: JSON.stringify(draft_order_data),
+                headers: HEADERS_ADMIN
+            })
+            .then(r =>  r.json()) 
+            .then(json => json);
 
-        // Complete Draft Order --> Order
-        completeOrder(shopify_order.draft_order.id);
+            // Complete Draft Order --> Order
+            completeOrder(shopify_order.draft_order.id);
+
+        }, 1000*60*1);
 
         res.status(200).json({msg: `SUCCESS: Shopify draft order created.`});
     
@@ -399,9 +411,9 @@ app.post('/sendOrder', async (req: Request, res: Response) => {
  *  Complete Draft Order --> Order
  *  @param draftID 
  */
-const completeOrder =  (draftID) => {
+const completeOrder = (draftID) => {
 
-    console.log('408 - Shopify DRAFT_ORDER Complete: ', draftID);
+    console.log('414 - Shopify DRAFT_ORDER Complete: ', draftID);
 
     // Check the status of the Shopify Create Customer Call
     async function checkStatus(r) {
@@ -409,23 +421,20 @@ const completeOrder =  (draftID) => {
         // If 200 >= x < 300, & return customer ID
         if (r.ok) { 
             console.log('392 - Shopify SUCCESS: ', r);
-            return  r.json()
+            return  await r.json()
         } else { 
             console.log('398 - Shopify: ', r);            
-            return r.json();
+            return await r.json();
         } 
     };
 
-    setTimeout(async()=> {
-        // Complete Order
-        const shopify_order = await fetch(URL + `draft_orders/${draftID}/complete.json`, {
-            method: 'put',
-            headers: HEADERS_ADMIN
-        })
-        .then(r =>  checkStatus(r))
-        .then(json => json);
-
-    }, 1500)
+    // Complete Order
+    const shopify_order = fetch(URL + `draft_orders/${draftID}/complete.json`, {
+        method: 'put',
+        headers: HEADERS_ADMIN
+    })
+    .then(r =>  checkStatus(r))
+    .then(json => json);
 };
 
 /**
@@ -439,7 +448,7 @@ app.post('/addProduct', async (req: Request, res: Response) => {
     console.log(FB_UUID, product)
 
     // Decostruct Product = { P_UID, QTY } 
-    const { variant_id, quantity, price } = product;
+    const { variant_id, quantity, price, title } = product;
 
     // Fetch FB doc for FB_UUID
     const docRef = doc(db, 'users', FB_UUID); 
@@ -454,6 +463,8 @@ app.post('/addProduct', async (req: Request, res: Response) => {
             await updateDoc(docRef, {
                 line_items: [
                     {
+                        title: title,
+                        price: price,
                         variant_id: variant_id,
                         quantity: quantity
                     }
@@ -466,6 +477,8 @@ app.post('/addProduct', async (req: Request, res: Response) => {
             line_items: [
                 ...line_items, 
                 {
+                    title: title,
+                    price: price,
                     variant_id: variant_id,
                     quantity: quantity
                 }

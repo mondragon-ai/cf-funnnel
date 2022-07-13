@@ -171,4 +171,52 @@ button {
     background-color: rgba(232, 232, 129, 0.336);
 }
 
+.cart-table {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-start;
+    align-content: flex-start;
+    padding: 5% 0 ;
+    margin: 0 auto;
+    width: 100%;
+    height: auto;
+}
+
+.line_item{
+    position: relative;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-start;
+    align-content: flex-start;
+    padding: 0%;
+    margin: 0 auto;
+    width: 100%;
+    height: auto;
+}
+
+.total {
+    position: relative;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    align-items: flex-end;
+    align-content: flex-end;
+    padding: 0%;
+    margin: 0 auto;
+    width: 100%;
+    height: auto;
+}
+
+.total h2 {
+    padding: 0% 0% 0 2% ;
+
+}
+.cart-table h2 {
+    color: rgb(23, 23, 23);
+    font-size: 1em;
+}
+
 

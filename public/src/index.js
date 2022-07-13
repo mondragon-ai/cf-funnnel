@@ -137,6 +137,7 @@ $("#BRONZE").click(function(e) {
   var radioValue = jQuery("input[name='LANDING_PRODUCT']:checked").val();
 
   product = {
+    title: 'Bronze Box',
     variant_id: 41513662578860,
     price: 900
   }
@@ -158,6 +159,7 @@ $("#SILVER").click(function(e) {
   var radioValue = jQuery("input[name='LANDING_PRODUCT']:checked").val();
   
   product = {
+    title: 'Silver Box',
     variant_id: 41513667985580,
     price: 3000
   }
@@ -179,6 +181,7 @@ $("#GOLD").click(function(e) {
   var radioValue = jQuery("input[name='LANDING_PRODUCT']:checked").val();
 
   product = {
+    title: 'Gold Box',
     variant_id: 41513672474796,
     price: 5000
   }
@@ -201,6 +204,7 @@ $("#PLATINUM").click(function(e) {
   var radioValue = jQuery("input[name='LANDING_PRODUCT']:checked").val();
 
   product = {
+    title: 'Platinum Box',
     variant_id: 41513860300972,
     price: 9900
   };

@@ -12,9 +12,65 @@ const firebaseConfig = {
   measurementId: "G-3LFMNFVE5Y"
 };
 
+var formatter = new Intl.NumberFormat('en-US', {
+  style: 'currency',
+  currency: 'USD',
+
+  // These options are needed to round to whole numbers if that's what you want.
+  //minimumFractionDigits: 0, // (this suffices for whole numbers, but will print 2500.10 as $2,500.1)
+  //maximumFractionDigits: 0, // (causes 2500.99 to be printed as $2,501)
+});
+
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 
 // Create DB
 export const db = firebase.firestore();
 console.log("FB & SHOPIFY INITALIZED");
+
+export async function getCart(FB_UUID)  {
+
+  let docRef = FB_UUID  ? await db.collection('users').doc(FB_UUID) : null;
+
+  if (docRef !== null) {
+
+    docRef.get().then(doc => {
+      if (doc.exists) {
+        const data = doc.data();
+        let html = ``;
+        let totalPrice = 0;
+  
+        if (!data.line_items) {
+          console.log("NO CART");
+  
+        } else {
+          const ln = data.line_items.length
+          for (let i = 0 ; i < ln ; i++) {
+  
+            console.log("Cart Item: ", data.line_items[i].price);
+  
+            let price = String(data.line_items[i].price).slice(0, -2);
+            totalPrice = totalPrice +   Number(price);
+  
+            price = formatter.format(Number(price));
+  
+            console.log("Price: ", price);
+            html = html + `<div class="line_item"><h2 id="title">${data.line_items[i].title}</h2><h2 id="price">${price}</h2></div>`; 
+  
+          }
+        }
+  
+        html = html + `<div class="total"><h2 id="">Total</h2><h2 id="total_price">${formatter.format(totalPrice)}</h2></div>`
+  
+        $(".cart-table").html(html);
+  
+        console.log(doc.data())
+        console.log(html)
+  
+      }
+    })
+
+  }
+
+};
+getCart(localStorage.getItem("FB_UUID"));
