@@ -20,6 +20,7 @@ localStorage.clear();
  * Fetches a payment intent and captures the client secret
  */
 async function initialize() {
+
   // GET: BE to init/create scene for using FB/Shopify/Stripe
   const response = await fetch("http://localhost:8080/createScene");
   const { clientSecret, FB_UUID } = await response.json();
@@ -106,17 +107,22 @@ $("#EVENT_ONE").submit(async function (ev) {
 
   console.log(e,n,f)
 
-  // Post email to BE - Stripe/FB/Shopify
-  await fetch('http://localhost:8080/addEmail', {
-    method: "POST",
-    body: JSON.stringify(d),
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  });
 
-  $("#EVENT_TWO").show();
-  $("#EVENT_ONE").hide();
+  if (n && f && e) {
+    $("#submit-btn").text("Loading...");
+    // Post email to BE - Stripe/FB/Shopify
+    await fetch('http://localhost:8080/addEmail', {
+      method: "POST",
+      body: JSON.stringify(d),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    $("#EVENT_TWO").show();
+    $("#EVENT_ONE").hide();
+  } 
+
 });
 
 // localStorage.clear()   
@@ -234,6 +240,7 @@ $("#bump").change(function(e) {
 async function handleSubmit(e) {
   e.preventDefault();
 
+
   var address = {}
   var name = ""
 
@@ -259,15 +266,20 @@ async function handleSubmit(e) {
   // Create Data Object to be POSTed
   const d = {shippingAddress: shippingAddress, FB_UUID: localStorage.getItem("FB_UUID"), product: product, bump: bump}
 
+  if (d.FB_UUID && d.shippingAddress.address && d.shippingAddress.name) {
+    $("#submit").text("Loading...");
+    // Post Data to BE for Stripe & FB
+    await fetch('http://localhost:8080/handleSubmit', {
+      method: "POST",
+      body: JSON.stringify(d),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+  } else {
+    console.log("NO EMAIl");
+  }
 
-  // Post Data to BE for Stripe & FB
-  const response = await fetch('http://localhost:8080/handleSubmit', {
-    method: "POST",
-    body: JSON.stringify(d),
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  });
 
   // ? Keep or naw? Data if needed 
   // const data = await response.json();
