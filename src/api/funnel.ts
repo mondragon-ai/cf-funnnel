@@ -1,4 +1,4 @@
-import e, { json, Request, Response } from "express";
+import { Request, Response } from "express";
 import fetch from 'node-fetch';
 const express = require('express');
 const cors = require('cors');
@@ -6,7 +6,9 @@ export const app = express();
 import {db} from '../index'
 import { stripe } from "../index";
 import { collection, addDoc, getDoc, doc, updateDoc, getDocs } from "firebase/firestore"; 
+import { logEvent } from "firebase/analytics";
 import Shopify from "@shopify/shopify-api";
+import { analytics } from "../index";
 const SHOP_URL = 'shophodgetwins'; 
 const SHOPIFY_ADMIN_ACCESS_TOKEN = process.env.SHOPIFY_ADMIN_ACCESS_TOKEN;
 const URL = `https://${SHOP_URL}.myshopify.com/admin/api/2022-07/`;
@@ -43,6 +45,8 @@ app.get('/test', async (req: Request, res: Response) => {
  * @return { FB_UUID, CLIENT_SECRET } 
  */
 app.get('/createScene', async (req: Request, res: Response) => { 
+    
+    logEvent(analytics, 'goal_completion', { name: 'lever_puzzle'});
 
     try { 
         // Create Stripe Customer
@@ -243,9 +247,9 @@ app.post('/handleSubmit',  async (req: Request, res: Response) => {
  */
 const initialCharge =  (FB_UUID, product, bump) => {
 
-    setTimeout(async()=> {
+    setTimeout(()=> {
         // create initial charge
-        await fetch("http://127.0.0.1:8080/charge", {
+        fetch("http://127.0.0.1:8080/charge", {
                 method: 'post',
                 body:    JSON.stringify({
                     FB_UUID: FB_UUID,
@@ -276,7 +280,7 @@ app.post('/charge', async (req: Request, res: Response) => {
     const data = snapShot.data();
     const price = (product.price + b + 599);
 
-    try {
+    if (snapShot.exists()) {
         // Get Customer Paymenth Method ID
         const paymentMethods = await stripe.paymentMethods.list({
             customer: data.STRIPE_UUID,
@@ -295,27 +299,34 @@ app.post('/charge', async (req: Request, res: Response) => {
 
         });
 
-        // Add Shipping & Shopify UUID to FB
+        // Add Shipping & Shopify UUID to FB 
         await updateDoc(docRef, {
             SHOPIFY_CHECKOUT_ID: paymentMethods.data[0].id
         });
 
         if (data.ORDER_STARTED) {
+
+            console.log("\n\n305 - Draft Order Started: " + data.ORDER_STARTED+ "\n\n");
             // Send headers success
             res.status(200).json({m: "SUCCESS: Sripe succesffuly charged customer.", d: paymentIntent, started: data.ORDER_STARTED});
 
         } else {
+            console.log("\n\n310 - Draft Order Started: " + data.ORDER_STARTED+ "\n\n");// Add Shipping & Shopify UUID to FB
+            await updateDoc(docRef, {
+                ORDER_STARTED: true
+            });
             sendOrder(FB_UUID);
+            res.status(201).json({ m: "Order created.", d: paymentIntent, started: data.ORDER_STARTED });
         }
         
 
-    } catch (err) {
+    } else {
         // Error code will be authentication_required if authentication is needed
-        console.log('291 - Error code is: ', err.code);
-        const paymentIntentRetrieved = await stripe.paymentIntents.retrieve(err.raw.payment_intent.id);
-        console.log('293 - PI retrieved: ', paymentIntentRetrieved.id);
+        console.log('291 - Error code is: ');
+        // const paymentIntentRetrieved = await stripe.paymentIntents.retrieve(err.raw.payment_intent.id);
+        // console.log('293 - PI retrieved: ', paymentIntentRetrieved.id);
         // Send errors
-        res.status(400).json(`STRIPE: Payment Error - ${err.code}`);
+        res.status(400).json(`STRIPE: Payment Error - `);
     }
 });
 
@@ -385,20 +396,20 @@ app.post('/sendOrder', async (req: Request, res: Response) => {
             }
         };
 
-        setTimeout( async () => {
-            // Create Order & Get Price
-            const shopify_order = await fetch(URL + `draft_orders.json`, {
-                method: 'post',
-                body: JSON.stringify(draft_order_data),
-                headers: HEADERS_ADMIN
-            })
-            .then(r =>  r.json()) 
-            .then(json => json);
+        // setTimeout( async () => {
+        // Create Order & Get Price
+        const shopify_order = await fetch(URL + `draft_orders.json`, {
+            method: 'post',
+            body: JSON.stringify(draft_order_data),
+            headers: HEADERS_ADMIN
+        })
+        .then(r =>  r.json()) 
+        .then(json => json);
 
-            // Complete Draft Order --> Order
-            completeOrder(shopify_order.draft_order.id);
+        // Complete Draft Order --> Order
+        completeOrder(shopify_order.draft_order.id);
 
-        }, 1000*60*1);
+        // }, 1000*60*1);
 
         res.status(200).json({msg: `SUCCESS: Shopify draft order created.`});
     
