@@ -3,6 +3,7 @@ const Stripe = require('stripe');
 const {app} = require("./api/funnel");
 const { initializeApp } = require("firebase/app");
 const { getFirestore} = require("firebase/firestore"); 
+import { getAnalytics, logEvent } from "firebase/analytics";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBVbUajosWuWo6RDhcwarsoFb5vQULdm50",
@@ -19,6 +20,8 @@ export const fbApp = initializeApp(firebaseConfig);
 
 // Initialize Cloud Firestore and get a reference to the service
 export const db = getFirestore(fbApp);
+
+export const analytics = getAnalytics();
 
 // Export Stripe Obj
 export const stripe = Stripe(process.env.STRIPE_SECRET);
