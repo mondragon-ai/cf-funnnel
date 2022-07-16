@@ -119,6 +119,6 @@
   "compileOnSave": true,
   "include": [
     "src"
-  ]
+, "src copy"  ]
 }
 
