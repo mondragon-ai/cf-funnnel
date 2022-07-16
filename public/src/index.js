@@ -127,7 +127,12 @@ $("#EVENT_ONE").submit(async function (ev) {
 
 // localStorage.clear()   
 
-let product = {};
+let product = {
+  title: 'Gold Box',
+  variant_id: 41513672474796,
+  price: 5000,
+  quantity: 1
+};
 let bump = true;
 
 $("#BRONZE").click(function(e) {    
@@ -145,7 +150,8 @@ $("#BRONZE").click(function(e) {
   product = {
     title: 'Bronze Box',
     variant_id: 41513662578860,
-    price: 900
+    price: 900,
+    quantity: 1
   }
   console.log('VALUE SELECTED: ', radioValue, product);
   
@@ -167,7 +173,8 @@ $("#SILVER").click(function(e) {
   product = {
     title: 'Silver Box',
     variant_id: 41513667985580,
-    price: 3000
+    price: 3000,
+    quantity: 1
   }
   console.log('VALUE SELECTED: ', radioValue, product);
 
@@ -189,7 +196,8 @@ $("#GOLD").click(function(e) {
   product = {
     title: 'Gold Box',
     variant_id: 41513672474796,
-    price: 5000
+    price: 5000,
+    quantity: 1
   }
 
   console.log('VALUE SELECTED: ', radioValue, product);
@@ -212,7 +220,8 @@ $("#PLATINUM").click(function(e) {
   product = {
     title: 'Platinum Box',
     variant_id: 41513860300972,
-    price: 9900
+    price: 9900,
+    quantity: 1
   };
 
   console.log('VALUE SELECTED: ', radioValue, product);
@@ -262,6 +271,8 @@ async function handleSubmit(e) {
     address: address,
     name: name
   }
+
+  // const f = "0wiXfIIa2ySBMeZSFSRj" // localStorage.getItem("FB_UUID")
 
   // Create Data Object to be POSTed
   const d = {shipping: shippingAddress, FB_UUID: localStorage.getItem("FB_UUID"), product: product, bump: bump}

@@ -31,12 +31,14 @@ export const db = firebase.firestore();
 console.log("FB & SHOPIFY INITALIZED");
 
 export async function getCart(FB_UUID)  {
+  console.log("Get Cart", db);
 
-  let docRef = FB_UUID  ? await db.collection('users').doc(FB_UUID) : null;
+  let docRef = await db.collection('customers').doc(FB_UUID);
 
   if (docRef !== null) {
 
     docRef.get().then(doc => {
+      console.log("Doc Ref", doc);
       if (doc.exists) {
         const data = doc.data();
         let html = ``;
@@ -69,9 +71,16 @@ export async function getCart(FB_UUID)  {
         console.log(doc.data())
         console.log(html)
   
+      } else {
+        $(".cart-table").html(`<div class="total"><h2 id="">Total</h2><h2 id="total_price">$0.000</h2></div>`);
+
       }
+    }).catch((error) => {
+      console.log("Error getting document:", error);
     })
 
+  } else {
+    console.log("ELSE");
   }
 
 };
