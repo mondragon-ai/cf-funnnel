@@ -6,9 +6,8 @@ export const app = express();
 import {db} from '../index'
 import { stripe } from "../index";
 import { collection, addDoc, getDoc, doc, updateDoc, getDocs } from "firebase/firestore"; 
-import { logEvent } from "firebase/analytics";
 import Shopify from "@shopify/shopify-api";
-import { analytics } from "../index";
+// import { analytics } from "../index";
 const SHOP_URL = 'shophodgetwins'; 
 const SHOPIFY_ADMIN_ACCESS_TOKEN = process.env.SHOPIFY_ADMIN_ACCESS_TOKEN;
 const URL = `https://${SHOP_URL}.myshopify.com/admin/api/2022-07/`;
@@ -45,8 +44,6 @@ app.get('/test', async (req: Request, res: Response) => {
  * @return { FB_UUID, CLIENT_SECRET } 
  */
 app.get('/createScene', async (req: Request, res: Response) => { 
-    
-    logEvent(analytics, 'goal_completion', { name: 'lever_puzzle'});
 
     try { 
         // Create Stripe Customer
@@ -255,8 +252,7 @@ const initialCharge =  (FB_UUID, product, bump) => {
                     FB_UUID: FB_UUID,
                     product: product,
                     b: bump
-                }),
-                headers: HEADERS_ADMIN
+                })
             })
             .then(r => r.json())
             .then(json => json);
@@ -305,7 +301,6 @@ app.post('/charge', async (req: Request, res: Response) => {
         });
 
         if (data.ORDER_STARTED) {
-
             console.log("\n\n305 - Draft Order Started: " + data.ORDER_STARTED+ "\n\n");
             // Send headers success
             res.status(200).json({m: "SUCCESS: Sripe succesffuly charged customer.", d: paymentIntent, started: data.ORDER_STARTED});
@@ -315,6 +310,7 @@ app.post('/charge', async (req: Request, res: Response) => {
             await updateDoc(docRef, {
                 ORDER_STARTED: true
             });
+
             sendOrder(FB_UUID);
             res.status(201).json({ m: "Order created.", d: paymentIntent, started: data.ORDER_STARTED });
         }
@@ -497,7 +493,7 @@ app.post('/addProduct', async (req: Request, res: Response) => {
         });
 
         // Once added make the charge
-        await fetch("http://127.0.0.1:8080/charge", {
+        await fetch("http://127.0.0.1:5001/shopify-recharge-352914/us-central1/api/customers/charge", {
             method: 'post',
             body:    JSON.stringify({
                 FB_UUID: FB_UUID, 

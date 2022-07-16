@@ -22,7 +22,7 @@ localStorage.clear();
 async function initialize() {
 
   // GET: BE to init/create scene for using FB/Shopify/Stripe
-  const response = await fetch("http://localhost:8080/createScene");
+  const response = await fetch("https://us-central1-shopify-recharge-352914.cloudfunctions.net/api/customers/createSession");
   const { clientSecret, FB_UUID } = await response.json();
 
   // const clientSecret = "seti_1LJMFUE1N4ioGCdRMh4KaX4r_secret_M1P3vVp9r0fRIiSC2X0AlDuR5AwNUh7"
@@ -100,10 +100,10 @@ function showMessage(messageText) {
  */
 $("#EVENT_ONE").submit(async function (ev) { 
   ev.preventDefault();
-  const e = $("input").val();
-  const n = $("form#EVENT_ONE input[type=email]").val();
+  const n = $("input").val();
+  const e = $("form#EVENT_ONE input[type=email]").val();
   const f = localStorage.getItem("FB_UUID")
-  const d =  { email: String(e), fullName: n, FB_UUID: String(f)};
+  const d =  { email: String(e), name: n, FB_UUID: String(f)};
 
   console.log(e,n,f)
 
@@ -111,7 +111,7 @@ $("#EVENT_ONE").submit(async function (ev) {
   if (n && f && e) {
     $("#submit-btn").text("Loading...");
     // Post email to BE - Stripe/FB/Shopify
-    await fetch('http://localhost:8080/addEmail', {
+    await fetch('https://us-central1-shopify-recharge-352914.cloudfunctions.net/api/customers/opt-in', {
       method: "POST",
       body: JSON.stringify(d),
       headers: {
@@ -264,17 +264,19 @@ async function handleSubmit(e) {
   }
 
   // Create Data Object to be POSTed
-  const d = {shippingAddress: shippingAddress, FB_UUID: localStorage.getItem("FB_UUID"), product: product, bump: bump}
+  const d = {shipping: shippingAddress, FB_UUID: localStorage.getItem("FB_UUID"), product: product, bump: bump}
 
-  if (d.FB_UUID && d.shippingAddress.address && d.shippingAddress.name) {
+  console.log(d)
+
+  if (d.FB_UUID && d.shipping.address && d.shipping.name) {
     $("#submit").text("Loading...");
     // Post Data to BE for Stripe & FB
-    await fetch('http://localhost:8080/handleSubmit', {
+    await fetch('https://us-central1-shopify-recharge-352914.cloudfunctions.net/api/customers/update', {
       method: "POST",
       body: JSON.stringify(d),
       headers: {
         'Content-Type': 'application/json',
-      },
+      }
     });
   } else {
     console.log("NO EMAIl");
@@ -289,7 +291,7 @@ async function handleSubmit(e) {
     //`Elements` instance that was used to create the Payment Element
     elements,
     confirmParams: {
-      return_url: 'http://127.0.0.1:5500/public/upsell.html',
+      return_url: 'https://shopify-recharge-352914.web.app/upsell.html',
     }
   });
 

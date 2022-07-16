@@ -31,7 +31,7 @@ $("#ADD_VIP").click(async function (e) {
     $("#ADD_VIP").text("LOADING....");
 
     // initiate Order 
-    await fetch("http://127.0.0.1:8080/addProduct", {
+    await fetch("https://us-central1-shopify-recharge-352914.cloudfunctions.net/api/addProduct", {
         method: 'post',
         body:    JSON.stringify({
             FB_UUID: f,
@@ -52,7 +52,7 @@ $("#ADD_VIP").click(async function (e) {
         // window.location.href="http://127.0.0.1:5500/public/congrats.html"
         return json
     });
-    window.location.href="http://127.0.0.1:5500/public/congrats.html";
+    window.location.href="https://shopify-recharge-352914.web.app/congrats.html";
 
 });
 
@@ -70,7 +70,7 @@ $("#DOWN_SELL_ONE").click( async (e) => {
     $("#DOWN_SELL_TWO").text("LOADING....");
   
     // initiate Order 
-    await fetch("http://127.0.0.1:8080/addProduct", {
+    await fetch("https://us-central1-shopify-recharge-352914.cloudfunctions.net/api/addProduct", {
         method: 'post',
         body:    JSON.stringify({
             FB_UUID: f,
@@ -91,7 +91,7 @@ $("#DOWN_SELL_ONE").click( async (e) => {
         // window.location.href="http://127.0.0.1:5500/public/congrats.html"
         return json
     });
-    window.location.href="http://127.0.0.1:5500/public/congrats.html";
+    window.location.href="https://shopify-recharge-352914.web.app/congrats.html";
   
 });
   
@@ -106,7 +106,7 @@ $("#DOWN_SELL_TWO").click( async (e) => {
     $("#DOWN_SELL_ONE").text("LOADING....");
   
     // initiate Order 
-    await fetch("http://127.0.0.1:8080/addProduct", {
+    await fetch("https://us-central1-shopify-recharge-352914.cloudfunctions.net/api/addProduct", {
         method: 'post',
         body:    JSON.stringify({
             FB_UUID: f,
@@ -127,7 +127,7 @@ $("#DOWN_SELL_TWO").click( async (e) => {
         // window.location.href="http://127.0.0.1:5500/public/congrats.html"
         return json
     });
-    window.location.href="http://127.0.0.1:5500/public/congrats.html"
+    window.location.href="https://shopify-recharge-352914.web.app/congrats.html"
   
   });
   
@@ -141,7 +141,7 @@ $("#DOWN_SELL_THREE").click( async (e) => {
     $("#DOWN_SELL_ONE").text("LOADING....");
   
     // initiate Order 
-    await fetch("http://127.0.0.1:8080/addProduct", {
+    await fetch("https://us-central1-shopify-recharge-352914.cloudfunctions.net/api/addProduct", {
         method: 'post',
         body:    JSON.stringify({
             FB_UUID: f,
@@ -162,7 +162,7 @@ $("#DOWN_SELL_THREE").click( async (e) => {
         // window.location.href="http://127.0.0.1:5500/public/congrats.html"
         return json
     });
-    window.location.href="http://127.0.0.1:5500/public/congrats.html"
+    window.location.href="https://shopify-recharge-352914.web.app/congrats.html"
   
 });
   
@@ -177,7 +177,7 @@ $("#DOWN_SELL_THREE").click( async (e) => {
     $("#DOWN_SELL_ONE").text("LOADING....");
   
     // initiate Order 
-    await fetch("http://127.0.0.1:8080/addProduct", {
+    await fetch("https://us-central1-shopify-recharge-352914.cloudfunctions.net/api/addProduct", {
         method: 'post',
         body:    JSON.stringify({
             FB_UUID: f,
@@ -198,7 +198,7 @@ $("#DOWN_SELL_THREE").click( async (e) => {
         // window.location.href="http://127.0.0.1:5500/public/congrats.html"
         return json
     });
-    window.location.href="http://127.0.0.1:5500/public/congrats.html";
+    window.location.href="https://shopify-recharge-352914.web.app/congrats.html";
   
   });
   

@@ -21,7 +21,7 @@ export const fbApp = initializeApp(firebaseConfig);
 // Initialize Cloud Firestore and get a reference to the service
 export const db = getFirestore(fbApp);
 
-export const analytics = getAnalytics();
+// export const analytics = getAnalytics();
 
 // Export Stripe Obj
 export const stripe = Stripe(process.env.STRIPE_SECRET);
