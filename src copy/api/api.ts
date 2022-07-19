@@ -6,7 +6,7 @@ import {stripe} from "./lib/stripe";
 import {createCustomerDoc, db, getCustomerDoc, updateCustomerDoc} from "./lib/firebase";
 import fetch from "node-fetch";
 import { cartToOrder, completeOrder, initialCharge, sendOrder } from "./lib/helper";
-// import * as functions from "firebase-functions";
+import * as functions from "firebase-functions";
 
 // Admin Headers 
 export const HEADERS_ADMIN = {
@@ -36,13 +36,72 @@ app.get("/test", async (req: express.Request, res: express.Response) => {
   res.status(200).json({m:"Successfly Tested API."});
 });
 
+/** 
+ * Test API Route
+ */
+ app.post('/customers/create-subscription', async (req: express.Request, res: express.Response) => {
+  //Get doc id
+  const {FB_UUID} = req.body;
+  const data = await getCustomerDoc(FB_UUID);
+    if (data !== null) {
+      try {
+        //Create Sub with customer
+        const subscription = await stripe.subscriptions.create({
+          customer: data.STRIPE_UUID,
+          items: [
+            {
+              price_data: {
+                currency: "usd",
+                product: "prod_M5BDYb70j19Und",
+                recurring: {
+                  interval: "month"
+                },
+                unit_amount: 900
+              }
+            },
+          ],
+          default_payment_method: data.STRIPE_PM,
+        });
+        // Update FB Doc 
+        const customerDoc = await updateCustomerDoc(FB_UUID, {
+          STRIPE_SUB_ID: subscription.id,
+          line_items: [
+              ...data.line_items,
+              {
+                  title: "VIP CLub",
+                  price: 900,
+                  variant_id: 1,
+                  quantity: 1
+              }
+          ]
+        });
+        // Send back 200 + data
+        res.status(200).json({
+          m: "Succesffully created subscription.",
+          d: subscription,
+          c: customerDoc,
+        });
+   
+      } catch (error) {
+        res.status(400).json({
+          m: "Error: Likely an issue with stripe.",
+          e: error,
+        });
+      }
+    } else {
+      res.status(404).json({
+        m: "Error: Likely an issue with firebase.",
+      });
+    }
+});
+
 /**
  *  Creating Scene for session 
  *  @param req
  *  @return 400 || 200
  */
 app.get("/customers/createSession", async (req: express.Request, res: express.Response) => {
-  // functions.logger.log("\n\n\n\n#1 Create User Session\n\n\n");
+  functions.logger.log("\n\n\n\n#1 Create User Session\n\n\n");
   // Try to call stripe
   try {
     // Create Stripe Customer
@@ -80,7 +139,7 @@ app.get("/customers/createSession", async (req: express.Request, res: express.Re
 
 app.post("/customers/opt-in", async (req: express.Request, res: express.Response) => {
   const {FB_UUID, email, name} = req.body;
-  // functions.logger.log("\n\n\n\n#2 Add EMAIL\n\n\n");
+  functions.logger.log("\n\n\n\n#2 Add EMAIL\n\n\n");
   try {
     const customerDoc = await updateCustomerDoc(FB_UUID, {
       email: email,
@@ -104,7 +163,7 @@ app.post("/customers/opt-in", async (req: express.Request, res: express.Response
  *  @return 400 || 200 || 201
  */
 app.post("/customers/update", async (req: express.Request, res: express.Response) => {
-  // functions.logger.log("\n\n\n\n#3 Update Customer\n\n\n");
+  functions.logger.log("\n\n\n\n#3 Update Customer\n\n\n");
   // Define vars
   const {shipping, product, bump, FB_UUID} = req.body;
   var docRef =  db.collection("customers").doc(FB_UUID); //getCustomerDoc(FB_UUID);
@@ -186,7 +245,7 @@ app.post("/customers/update", async (req: express.Request, res: express.Response
         })
         .then(resp => checkStatus(resp))
         .then(json => json);
-        // functions.logger.log("\n\n\n\n#3 Update Customer - Shopify\n\n\n", shopifyCustomer);
+        functions.logger.log("\n\n\n\n#3 Update Customer - Shopify\n\n\n", shopifyCustomer);
     
         // Update Stripe Customer 
         const stripeCustomer = await stripe.customers.update(
@@ -206,7 +265,7 @@ app.post("/customers/update", async (req: express.Request, res: express.Response
             },
           }
         );
-        // functions.logger.log("\n\n\n\n#3 Update Customer - Stripe\n\n\n", stripeCustomer);
+        functions.logger.log("\n\n\n\n#3 Update Customer - Stripe\n\n\n", stripeCustomer);
     
         // Push new data to Firebase
         await updateCustomerDoc(FB_UUID, {
@@ -233,7 +292,7 @@ app.post("/customers/update", async (req: express.Request, res: express.Response
           isReadyToCharge: true
         });
 
-        // functions.logger.log("UPDATE CUSTOMERS:", FB_UUID, product, b);
+        functions.logger.log("UPDATE CUSTOMERS:", FB_UUID, product, b);
     
         // Call initial charge
         initialCharge(FB_UUID, product, b);
@@ -266,7 +325,7 @@ app.post("/customers/update", async (req: express.Request, res: express.Response
  *  @param bump
  */
 app.post("/customers/charge", async (req: express.Request, res: express.Response) => {
-  // functions.logger.log("\n\n\n\n\n#4 Charge Customer\n\n\n\n\n");
+  functions.logger.log("\n\n\n\n\n#4 Charge Customer\n\n\n\n\n");
   // get Product and FB_UUID
   const { FB_UUID, product, b } = req.body;
   console.log("\n\n\n\n ============== SPACE ==============\n\n\n\n ");
@@ -295,7 +354,7 @@ app.post("/customers/charge", async (req: express.Request, res: express.Response
 
       // Update FB document
       await updateCustomerDoc(FB_UUID, {
-        SHOPIFY_CHECKOUT_ID: paymentMethods.data[0].id
+        STRIPE_PM: paymentMethods.data[0].id
       });
   
       console.log("\n\n SUCCESSFULLY CHARGED: " + paymentIntent + " \n\n\ ")
@@ -338,7 +397,7 @@ app.post("/customers/charge", async (req: express.Request, res: express.Response
  *  @param FB_UUID
  */
 app.post("/customers/createOrder", async (req: express.Request, res: express.Response) => {
-  // functions.logger.log("\n\n\n\n\n#5 Order Created\n\n\n\n\n");
+  functions.logger.log("\n\n\n\n\n#5 Order Created\n\n\n\n\n");
   const {FB_UUID} = req.body;
   const data = await getCustomerDoc(FB_UUID);
 
@@ -388,7 +447,7 @@ app.post("/customers/createOrder", async (req: express.Request, res: express.Res
 });
 
 app.post("/addProduct", async (req: express.Request, res: express.Response) => {
-  // functions.logger.log("\n\n\n\n\n#6 Add Product\n\n\n\n\n");
+  functions.logger.log("\n\n\n\n\n#6 Add Product\n\n\n\n\n");
   const {FB_UUID, product} = req.body;
   const data = await getCustomerDoc(FB_UUID);
   try {
@@ -420,7 +479,7 @@ app.post("/addProduct", async (req: express.Request, res: express.Response) => {
     };
 
     // Once added make the charge
-    await fetch("https://us-central1-shopify-recharge-352914.cloudfunctions.net/api/customers/charge", {
+    await fetch("https://us-central1-shopify-recharge-352914.cloudfunctions.net/funnelAPI/customers/charge", {
       method: 'post',
       body:    JSON.stringify({
           FB_UUID: FB_UUID, 

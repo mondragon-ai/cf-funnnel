@@ -5,8 +5,7 @@ const cors = require('cors');
 export const app = express();
 import {db} from '../index'
 import { stripe } from "../index";
-import { collection, addDoc, getDoc, doc, updateDoc, getDocs } from "firebase/firestore"; 
-import Shopify from "@shopify/shopify-api";
+import { collection, addDoc, getDoc, doc, updateDoc } from "firebase/firestore"; 
 // import { analytics } from "../index";
 const SHOP_URL = 'shophodgetwins'; 
 const SHOPIFY_ADMIN_ACCESS_TOKEN = process.env.SHOPIFY_ADMIN_ACCESS_TOKEN;
@@ -23,15 +22,6 @@ app.use( express.json());
 // Make cross origin
 app.use( cors({origin:true}));
 
-/**
- *  Build & Instantiate Shopify Client
- *  @param { domain, storefront }  
- */
-const shopifyClient = new Shopify.Clients.Storefront(
-    'shophodgetwins.myshopify.com',
-    '6acb860cfdb0d87b1f7ece385e7727f4'
-);
-
 /** 
  * Test API Route
  */
@@ -39,6 +29,12 @@ app.get('/test', async (req: Request, res: Response) => {
     res.status(200).json({msg: "SUCCESS"})
 });
 
+/** 
+ * Test API Route
+ */
+ app.post('/create-sub', async (req: Request, res: Response) => {
+    res.status(200).json({msg: "SUCCESS"})
+});
 /**
  * Create Scene 
  * @return { FB_UUID, CLIENT_SECRET } 
@@ -545,7 +541,7 @@ const cartToOrder =  (FB_DOC) => {
         }
         return cart
     }
-}
+};
 
 
 

@@ -24,7 +24,7 @@ var formatter = new Intl.NumberFormat('en-US', {
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 
-const analytics = firebase.analytics();
+export const analytics = firebase.analytics();
 
 // Create DB
 export const db = firebase.firestore();
@@ -84,4 +84,8 @@ export async function getCart(FB_UUID)  {
   }
 
 };
-getCart(localStorage.getItem("FB_UUID"));
+
+if (localStorage.getItem("FB_UUID")) {
+  getCart(localStorage.getItem("FB_UUID"));
+}
+

@@ -1,6 +1,7 @@
 console.log("PUBLIC - INDEX.JS")
 console.log("PUBLIC - INDEX.JS", localStorage);
 const stripe = Stripe('pk_test_51LCmGyE1N4ioGCdR6UcKcjiZDb8jfZaaDWcIGhdaUCyhcIDBxG9uYzLGFtziZjZ6R6VnSSVEMW8dUZ8IfnwvSSBa0044BHRyL5');
+// import {analytics} from "./lib/firebase";
 
 // Hide the second form on load
 $("#EVENT_TWO").hide();
@@ -20,10 +21,10 @@ localStorage.clear();
  * Fetches a payment intent and captures the client secret
  */
 async function initialize() {
-
   // GET: BE to init/create scene for using FB/Shopify/Stripe
-  const response = await fetch("https://us-central1-shopify-recharge-352914.cloudfunctions.net/api/customers/createSession");
+  const response = await fetch("https://us-central1-shopify-recharge-352914.cloudfunctions.net/funnelAPI/customers/createSession");
   const { clientSecret, FB_UUID } = await response.json();
+  // analytics.logEvent('page_view', {page_location: window.location});
 
   // const clientSecret = "seti_1LJMFUE1N4ioGCdRMh4KaX4r_secret_M1P3vVp9r0fRIiSC2X0AlDuR5AwNUh7"
   // Add FB_UUID & Stripe C_secret to Local Storage
@@ -100,6 +101,7 @@ function showMessage(messageText) {
  */
 $("#EVENT_ONE").submit(async function (ev) { 
   ev.preventDefault();
+  // analytics.logEvent('add_email');
   const n = $("input").val();
   const e = $("form#EVENT_ONE input[type=email]").val();
   const f = localStorage.getItem("FB_UUID")
@@ -111,7 +113,7 @@ $("#EVENT_ONE").submit(async function (ev) {
   if (n && f && e) {
     $("#submit-btn").text("Loading...");
     // Post email to BE - Stripe/FB/Shopify
-    await fetch('https://us-central1-shopify-recharge-352914.cloudfunctions.net/api/customers/opt-in', {
+    await fetch('https://us-central1-shopify-recharge-352914.cloudfunctions.net/funnelAPI/customers/opt-in', {
       method: "POST",
       body: JSON.stringify(d),
       headers: {
@@ -248,6 +250,7 @@ $("#bump").change(function(e) {
  */
 async function handleSubmit(e) {
   e.preventDefault();
+  // analytics.logEvent('add_payment_info');
 
 
   var address = {}
@@ -282,7 +285,7 @@ async function handleSubmit(e) {
   if (d.FB_UUID && d.shipping.address && d.shipping.name) {
     $("#submit").text("Loading...");
     // Post Data to BE for Stripe & FB
-    await fetch('https://us-central1-shopify-recharge-352914.cloudfunctions.net/api/customers/update', {
+    await fetch('https://us-central1-shopify-recharge-352914.cloudfunctions.net/funnelAPI/customers/update', {
       method: "POST",
       body: JSON.stringify(d),
       headers: {

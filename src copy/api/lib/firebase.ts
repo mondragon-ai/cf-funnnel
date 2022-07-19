@@ -12,23 +12,29 @@ console.log(db)
  */
 export const getCustomerDoc = async (FB_UUID: string) => {
   let customer: any = null;
-  // Doc Ref
-  var docRef = db.collection("customers").doc(FB_UUID);
-  // Get Doc
-  await docRef.get().then((doc) => {
-    if (doc.exists) {
-        console.log("Document data:", doc.data());
-        customer = doc.data();
-    } else {
-        // doc.data() will be undefined in this case
-        console.log("No such document!");
-        customer = null;
-    }
-  }).catch((error) => {
-      console.log("Error getting document:", error);
-  });
 
-  return customer;
+  if (FB_UUID !== "") {
+    // Doc Ref
+    var docRef = db.collection("customers").doc(FB_UUID);
+    // Get Doc
+    await docRef.get().then((doc) => {
+      if (doc.exists) {
+          console.log("Document data:", doc.data());
+          customer = doc.data();
+      } else {
+          // doc.data() will be undefined in this case
+          console.log("No such document!");
+          customer = null;
+      }
+    }).catch((error) => {
+        console.log("Error getting document:", error);
+    });
+  
+    return customer;
+  } else {
+    console.log("FB_UUID EMPTY")
+    return customer;
+  }
 
 };
 

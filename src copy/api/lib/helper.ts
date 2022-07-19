@@ -13,7 +13,7 @@ export const initialCharge = (FB_UUID: string, product: any, bump: number) =>  {
   setTimeout(() => {
     console.log("HELPER FUNCITONS - inside: ", FB_UUID);
     // Fetch INternally
-    fetch("https://us-central1-shopify-recharge-352914.cloudfunctions.net/api/customers/charge", {
+    fetch("https://us-central1-shopify-recharge-352914.cloudfunctions.net/funnelAPI/customers/charge", {
       method: "POST",
       body: JSON.stringify({
         FB_UUID: FB_UUID,
@@ -42,7 +42,7 @@ export const sendOrder =  (FB_UUID: string) => {
     console.log('38 - Shopify DRAFT_ORDER called: ', FB_UUID);
     const f = FB_UUID;
     // initiate Order 
-    fetch("https://us-central1-shopify-recharge-352914.cloudfunctions.net/api/customers/createOrder", {
+    fetch("https://us-central1-shopify-recharge-352914.cloudfunctions.net/funnelAPI/customers/createOrder", {
       method: 'post',
       body:    JSON.stringify({FB_UUID: f}),
       headers: {

@@ -31,16 +31,10 @@ $("#ADD_VIP").click(async function (e) {
     $("#ADD_VIP").text("LOADING....");
 
     // initiate Order 
-    await fetch("https://us-central1-shopify-recharge-352914.cloudfunctions.net/api/addProduct", {
+    await fetch("https://us-central1-shopify-recharge-352914.cloudfunctions.net/funnelAPI/customers/create-subscription", {
         method: 'post',
         body:    JSON.stringify({
-            FB_UUID: f,
-            product: {
-                variant_id: 41271082451116,
-                price: 900,
-                quantity: 1,
-                title: "LGB Wristband Pack"
-            }
+            FB_UUID: f
         }),
         headers: {
           'Content-Type': 'application/json',
@@ -70,7 +64,7 @@ $("#DOWN_SELL_ONE").click( async (e) => {
     $("#DOWN_SELL_TWO").text("LOADING....");
   
     // initiate Order 
-    await fetch("https://us-central1-shopify-recharge-352914.cloudfunctions.net/api/addProduct", {
+    await fetch("https://us-central1-shopify-recharge-352914.cloudfunctions.net/funnelAPI/addProduct", {
         method: 'post',
         body:    JSON.stringify({
             FB_UUID: f,
@@ -106,7 +100,7 @@ $("#DOWN_SELL_TWO").click( async (e) => {
     $("#DOWN_SELL_ONE").text("LOADING....");
   
     // initiate Order 
-    await fetch("https://us-central1-shopify-recharge-352914.cloudfunctions.net/api/addProduct", {
+    await fetch("https://us-central1-shopify-recharge-352914.cloudfunctions.net/funnelAPI/addProduct", {
         method: 'post',
         body:    JSON.stringify({
             FB_UUID: f,
@@ -141,7 +135,7 @@ $("#DOWN_SELL_THREE").click( async (e) => {
     $("#DOWN_SELL_ONE").text("LOADING....");
   
     // initiate Order 
-    await fetch("https://us-central1-shopify-recharge-352914.cloudfunctions.net/api/addProduct", {
+    await fetch("https://us-central1-shopify-recharge-352914.cloudfunctions.net/funnelAPI/addProduct", {
         method: 'post',
         body:    JSON.stringify({
             FB_UUID: f,
@@ -177,7 +171,7 @@ $("#DOWN_SELL_THREE").click( async (e) => {
     $("#DOWN_SELL_ONE").text("LOADING....");
   
     // initiate Order 
-    await fetch("https://us-central1-shopify-recharge-352914.cloudfunctions.net/api/addProduct", {
+    await fetch("https://us-central1-shopify-recharge-352914.cloudfunctions.net/funnelAPI/addProduct", {
         method: 'post',
         body:    JSON.stringify({
             FB_UUID: f,
