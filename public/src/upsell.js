@@ -21,6 +21,7 @@ console.log('started', localStorage);
 // };
 // startTimer();
 
+
 /**
  *  Call /addProduct from upsell-one
  */
@@ -30,8 +31,10 @@ $("#ADD_VIP").click(async function (e) {
 
     $("#ADD_VIP").text("LOADING....");
 
+
+
     // initiate Order 
-    await fetch("https://us-central1-shopify-recharge-352914.cloudfunctions.net/funnelAPI/customers/create-subscription", {
+    const result = await fetch("https://us-central1-shopify-recharge-352914.cloudfunctions.net/funnelAPI/customers/create-subscription", {
         method: 'post',
         body:    JSON.stringify({
             FB_UUID: f
@@ -46,6 +49,19 @@ $("#ADD_VIP").click(async function (e) {
         // window.location.href="http://127.0.0.1:5500/public/congrats.html"
         return json
     });
+
+    console.log("VIP RESULT: ", result);
+
+    function getRandomInt(max) {
+        return Math.floor(Math.random() * max);
+      }
+      
+
+    await window.firebase.analytics().logEvent('purchase', {
+        value: 40,
+        currency: "USD",
+        transaction_id: getRandomInt(10000)
+    });
     window.location.href="https://shopify-recharge-352914.web.app/congrats.html";
 
 });
@@ -56,8 +72,6 @@ $("#DOWN_SELL_ONE").click( async (e) => {
     e.preventDefault();
     const f = localStorage.getItem("FB_UUID");
 
-
-  
     $("#DOWN_SELL_ONE").text("LOADING....");
     $("#DOWN_SELL_FOUR").text("LOADING....");
     $("#DOWN_SELL_THREE").text("LOADING....");

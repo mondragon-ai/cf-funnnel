@@ -3,6 +3,20 @@ console.log("PUBLIC - INDEX.JS", localStorage);
 const stripe = Stripe('pk_test_51LCmGyE1N4ioGCdR6UcKcjiZDb8jfZaaDWcIGhdaUCyhcIDBxG9uYzLGFtziZjZ6R6VnSSVEMW8dUZ8IfnwvSSBa0044BHRyL5');
 // import {analytics} from "./lib/firebase";
 
+// const firebaseConfig = {
+//   apiKey: "AIzaSyBVbUajosWuWo6RDhcwarsoFb5vQULdm50",
+//   authDomain: "shopify-recharge-352914.firebaseapp.com",
+//   projectId: "shopify-recharge-352914",
+//   storageBucket: "shopify-recharge-352914.appspot.com",
+//   messagingSenderId: "282916076195",
+//   appId: "1:282916076195:web:5f4863d335fd2394ff5d16",
+//   measurementId: "G-3LFMNFVE5Y"
+// };
+// // Initialize Firebase
+// firebase.initializeApp(firebaseConfig);
+// const analytics = firebase.analytics();
+
+
 // Hide the second form on load
 $("#EVENT_TWO").hide();
 
@@ -24,7 +38,7 @@ async function initialize() {
   // GET: BE to init/create scene for using FB/Shopify/Stripe
   const response = await fetch("https://us-central1-shopify-recharge-352914.cloudfunctions.net/funnelAPI/customers/createSession");
   const { clientSecret, FB_UUID } = await response.json();
-  // analytics.logEvent('page_view', {page_location: window.location});
+  window.firebase.analytics().logEvent('page_view', {page_location: window.location});
 
   // const clientSecret = "seti_1LJMFUE1N4ioGCdRMh4KaX4r_secret_M1P3vVp9r0fRIiSC2X0AlDuR5AwNUh7"
   // Add FB_UUID & Stripe C_secret to Local Storage
@@ -101,14 +115,13 @@ function showMessage(messageText) {
  */
 $("#EVENT_ONE").submit(async function (ev) { 
   ev.preventDefault();
-  // analytics.logEvent('add_email');
+  window.firebase.analytics().logEvent('add_email');
   const n = $("input").val();
   const e = $("form#EVENT_ONE input[type=email]").val();
   const f = localStorage.getItem("FB_UUID")
   const d =  { email: String(e), name: n, FB_UUID: String(f)};
 
   console.log(e,n,f)
-
 
   if (n && f && e) {
     $("#submit-btn").text("Loading...");
@@ -126,7 +139,6 @@ $("#EVENT_ONE").submit(async function (ev) {
   } 
 
 });
-
 // localStorage.clear()   
 
 let product = {
@@ -200,7 +212,7 @@ $("#GOLD").click(function(e) {
     variant_id: 41513672474796,
     price: 5000,
     quantity: 1
-  }
+  };
 
   console.log('VALUE SELECTED: ', radioValue, product);
 
@@ -250,7 +262,7 @@ $("#bump").change(function(e) {
  */
 async function handleSubmit(e) {
   e.preventDefault();
-  // analytics.logEvent('add_payment_info');
+  window.firebase.analytics().logEvent('add_payment_info');
 
 
   var address = {}
@@ -292,10 +304,13 @@ async function handleSubmit(e) {
         'Content-Type': 'application/json',
       }
     });
+    window.firebase.analytics().logEvent('add_payment_info', {
+      currency: "USD",
+      value: product.price
+    });
   } else {
     console.log("NO EMAIl");
   }
-
 
   // ? Keep or naw? Data if needed 
   // const data = await response.json();

@@ -11,6 +11,8 @@ const firebaseConfig = {
   appId: "1:282916076195:web:5f4863d335fd2394ff5d16",
   measurementId: "G-3LFMNFVE5Y"
 };
+// Initialize Firebase
+firebase.initializeApp(firebaseConfig);
 
 var formatter = new Intl.NumberFormat('en-US', {
   style: 'currency',
@@ -21,10 +23,8 @@ var formatter = new Intl.NumberFormat('en-US', {
   //maximumFractionDigits: 0, // (causes 2500.99 to be printed as $2,501)
 });
 
-// Initialize Firebase
-firebase.initializeApp(firebaseConfig);
 
-export const analytics = firebase.analytics();
+// export const analytics = firebase.analytics();
 
 // Create DB
 export const db = firebase.firestore();
